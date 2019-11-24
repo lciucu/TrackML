@@ -19,7 +19,7 @@ debug=False
 verbose=True
 doTest=False
 
-string_stage="10000" # all steps
+string_stage="01000" # all steps
 
 # output stem
 inputFolderName="./input"
@@ -217,10 +217,11 @@ def write_NN_input_output_to_files(df_hits,doWriteOnlyAnEvenNumberOfBuckets):
 def get_nparray_train_test(name,fileNameNNInputOrOutput):
     if debug:
         print("get_nparray_train_test for name",name,"fileNameNNInputOrOutput",fileNameNNInputOrOutput)
-    nparray=np.fromfile(fileNameNNInputOrOutput,dtype=np.dtype('<f8'))
-    print(nparray)
-    print(nparray.shape)
-    # print_nparray(name,nparray)
+    nparray=np.load(fileNameNNInputOrOutput)
+   # print(nparray)
+   # print(nparray.shape)
+    print_nparray(name,nparray)
+    return 1,2
 # done function
 
 #########################################################################################################
@@ -264,7 +265,7 @@ def doItAll():
         write_NN_input_output_to_files(df_hits,doWriteOnlyAnEvenNumberOfBuckets=False)
     if doNNInputOutputTrainTest:
         nparray_input_train,nparray_input_test=get_nparray_train_test("input",fileNameNNInput)
-        nparray_output_train,nparray_output_test=get_nparray_train_test("output",fileNameNNOutput)
+        #nparray_output_train,nparray_output_test=get_nparray_train_test("output",fileNameNNOutput)
     if doNNTrain:
         model=prepare_NN_model(bucketSize,k)
     # done if
