@@ -17,8 +17,9 @@ np.random.seed(98383822)
 
 debug=False
 verbose=True
+doTest=False
 
-string_stage="00100" # all steps
+string_stage="10000" # all steps
 
 # output stem
 inputFolderName="./input"
@@ -34,6 +35,8 @@ k=2
 nrNodesInputLayer=bucketSize*3 # three inputs (x, y, z) for each hit in the batch
 nrNodesHiddenLayer=bucketSize*k # let the user change this k as hyper-parameter
 nrNodesOutputLayer=bucketSize*1 # one output for each hit in the batch
+nrHitsTest=bucketSize*4 # 2 in test 2 in train
+
 
 list_stage=list(string_stage)
 doNNInputOutput=bool(int(list_stage[0]))
@@ -149,6 +152,9 @@ def write_NN_input_output_to_files(df_hits,doWriteOnlyAnEvenNumberOfBuckets):
     nrHits=df_hits.shape[0]
     if debug:
         print("nrHits",nrHits)
+    if doTest:
+        nrHits=nrHitsTest 
+        print("doTest=true, so hacking nrHits to be a small number("+str(nrHitsTest)+"), so that we run just a quick test")
     if doWriteOnlyAnEvenNumberOfBuckets:
         nrBuckets=(nrHits-nrHits%bucketSize)/bucketSize
         if debug:
@@ -164,7 +170,7 @@ def write_NN_input_output_to_files(df_hits,doWriteOnlyAnEvenNumberOfBuckets):
         isMultipleofBucketSize=(i%bucketSize==0)
         if isMultipleofBucketSize==False:
             continue
-        isCompleteBucket=i+bucketSize<nrHits
+        isCompleteBucket=i+bucketSize<=nrHits
         if isCompleteBucket==False:
             continue
         if doWriteOnlyAnEvenNumberOfBuckets:
