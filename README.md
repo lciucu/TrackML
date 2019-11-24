@@ -1,1 +1,1 @@
-Implementing the project from this [kaggle competition](https://www.kaggle.com/c/trackml-particle-identification) first in a jupyter notebook, and later in pure python. 
+Implementing the project of matching hits to a particle from this [Kaggle competition](https://www.kaggle.com/c/trackml-particle-identification) first in a Jupyter Notebook (with Python3), and later in pure Python3.
