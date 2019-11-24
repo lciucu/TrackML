@@ -19,15 +19,19 @@ debug=False
 verbose=True
 doTest=False
 
-string_stage="01000" # all steps
+string_stage="10000" # all steps
 
 # output stem
 inputFolderName="./input"
 outputFolderName="./output"
-fileNameNNInput=outputFolderName+"/NN_input.npy"
-fileNameNNOutput=outputFolderName+"/NN_output.npy"
 
-#eventNumber="000000032"
+list_valueInputOutput="input,output".split(",")
+list_valueTrainTest="train,test".split(",")
+
+dict_valueInputOutput_fileName={}
+for valueInputOutput in list_valueInputOutput:
+    dict_valueInputOutput_fileName[valueInputOutput]=outputFolderName+"/NN_data_"+valueInputOutput+".npy"
+
 eventNumber="000021069"
 
 bucketSize=20
@@ -36,7 +40,6 @@ nrNodesInputLayer=bucketSize*3 # three inputs (x, y, z) for each hit in the batc
 nrNodesHiddenLayer=bucketSize*k # let the user change this k as hyper-parameter
 nrNodesOutputLayer=bucketSize*1 # one output for each hit in the batch
 nrHitsTest=bucketSize*4 # 2 in test 2 in train
-
 
 list_stage=list(string_stage)
 doNNInputOutput=bool(int(list_stage[0]))
@@ -148,7 +151,7 @@ def get_list_outputValues(df_bucket,debug):
     return list_outputValues
 # done function
 
-def write_NN_input_output_to_files(df_hits,doWriteOnlyAnEvenNumberOfBuckets):
+def write_to_file_NN_data_valueInputOutput(df_hits,doWriteOnlyAnEvenNumberOfBuckets):
     nrHits=df_hits.shape[0]
     if debug:
         print("nrHits",nrHits)
@@ -164,8 +167,7 @@ def write_NN_input_output_to_files(df_hits,doWriteOnlyAnEvenNumberOfBuckets):
             print("nrBuckets",nrBuckets)
     # done if
     counterBuckets=0
-    list_list_inputValues=[]
-    list_list_outputValues=[]
+    dict_valueInputOutput_list_list_value={}
     for i in range (nrHits):
         isMultipleofBucketSize=(i%bucketSize==0)
         if isMultipleofBucketSize==False:
@@ -178,35 +180,36 @@ def write_NN_input_output_to_files(df_hits,doWriteOnlyAnEvenNumberOfBuckets):
             if isNotLastOddBucket==False:
                 continue
         # done if
-        counterBuckets+=1
         if debug or (verbose and counterBuckets%100==0):
             print(i,isMultipleofBucketSize,counterBuckets)
+        counterBuckets+=1
         df_bucket=df_hits[i:i+bucketSize]
-        list_inputValues=get_list_inputValues(df_bucket,debug)
-        if debug:
-            print("list_inputValues",list_inputValues)
-        list_outputValues=get_list_outputValues(df_bucket,debug)
-        if debug:
-            print("list_outputValues", list_outputValues)
-        list_list_inputValues.append(list_inputValues)
-        list_list_outputValues.append(list_outputValues)
-    # done for loop
+        #
+        dict_valueInputOutput_list_value={}
+        dict_valueInputOutput_list_value["input"]=get_list_inputValues(df_bucket,debug)
+        dict_valueInputOutput_list_value["output"]=get_list_outputValues(df_bucket,debug)
+        for valueInputOutput in list_valueInputOutput:
+            if debug:
+                print("list_value "+valueInputOutput,dict_valueInputOutput_list_value[valueInputOutput]) 
+            if valueInputOutput not in dict_valueInputOutput_list_list_value:
+                dict_valueInputOutput_list_list_value[valueInputOutput]=[]
+            else:
+                dict_valueInputOutput_list_list_value[valueInputOutput].append(dict_valueInputOutput_list_value[valueInputOutput])
+            # done if
+        # done for loop over valueInputOutput
+    # done for loop over hits
     if debug:
         print("counterBuckets",counterBuckets)
-        print("length_input",len(list_list_inputValues))
-        print("length_output",len(list_list_outputValues))
-    # convert lists to numpy arrays
-    nparray_input=np.array(list_list_inputValues)
-    if debug or verbose:
-        print("nparray_input", nparray_input.shape, nparray_input.dtype)
-        print(nparray_input)
-    nparray_output=np.array(list_list_outputValues)
-    if debug or verbose:
-        print("nparray_output", nparray_output.shape, nparray_output.dtype)
-        print(nparray_output)
-    # save numpy arrays to files
-    np.save(fileNameNNInput,nparray_input)
-    np.save(fileNameNNOutput,nparray_output)
+    # done if
+    dict_valueInputOutput_nparray={}
+    for valueInputOutput in list_valueInputOutput:
+        print("length_"+valueInputOutput,len(dict_valueInputOutput_list_list_value[valueInputOutput]))
+        # convert list_value to nparray
+        dict_valueInputOutput_nparray[valueInputOutput]=np.array(dict_valueInputOutput_list_list_value[valueInputOutput])
+        print_nparray(valueInputOutput,dict_valueInputOutput_nparray[valueInputOutput])
+        # write nparray to file
+        np.save(dict_valueInputOutput_fileName[valueInputOutput],dict_valueInputOutput_nparray[valueInputOutput])
+    # done for loop over valueInputOutput
 # done function
 
 #########################################################################################################
@@ -266,10 +269,12 @@ def prepare_NN_model(bucketSize,k):
 def doItAll():
     if doNNInputOutput:
         df_hits=get_df_hits_for_one_event(eventNumber)
-        write_NN_input_output_to_files(df_hits,doWriteOnlyAnEvenNumberOfBuckets=False)
+        write_to_file_NN_data_valueInputOutput(df_hits,doWriteOnlyAnEvenNumberOfBuckets=False)
     if doNNInputOutputTrainTest:
-        nparray_input_train,nparray_input_test=get_nparray_train_test("input",fileNameNNInput)
+       #nparray_input_train,nparray_input_test=get_nparray_train_test("input",fileNameNNInput)
         #nparray_output_train,nparray_output_test=get_nparray_train_test("output",fileNameNNOutput)
+        # dict_option_nparray=get_and_write_to_files_nparray_input_output_train_test()
+        pass
     if doNNTrain:
         model=prepare_NN_model(bucketSize,k)
     # done if
