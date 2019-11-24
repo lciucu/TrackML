@@ -19,23 +19,25 @@ debug=False
 verbose=True
 doTest=False
 
-string_stage="00100" # all steps
+string_stage="11100" # all steps
 
 # output stem
 inputFolderName="./input"
 outputFolderName="./output"
 
-list_valueInputOutput="Input,Output".split(",")
-list_valueTrainTest="Train,Test".split(",")
+# valueInputOutput=io
+list_io="Input,Output".split(",")
+# valueTrainTest=tt
+list_tt="Train,Test".split(",")
 
-dict_valueInputOutput_fileName={}
-for valueInputOutput in list_valueInputOutput:
-    dict_valueInputOutput_fileName[valueInputOutput]=outputFolderName+"/NN_data_1_"+valueInputOutput+".npy"
+dict_io_fileName={}
+for io in list_io:
+    dict_io_fileName[io]=outputFolderName+"/NN_data_1_"+io+".npy"
 
-dict_valueInputOutput_valueTrainTest_fileName={}
-for valueInputOutput in list_valueInputOutput:
-    for valueTrainTest in list_valueTrainTest:
-        dict_valueInputOutput_valueTrainTest_fileName[valueInputOutput+valueTrainTest]=outputFolderName+"/NN_data_2_"+valueInputOutput+valueTrainTest+".npy"
+dict_io_tt_fileName={}
+for io in list_io:
+    for tt in list_tt:
+        dict_io_tt_fileName[io+tt]=outputFolderName+"/NN_data_2_"+io+tt+".npy"
     
 eventNumber="000021069"
 
@@ -156,7 +158,7 @@ def get_list_outputValues(df_bucket,debug):
     return list_outputValues
 # done function
 
-def write_to_file_NN_data_dict_valueInputOutput_nparray(df_hits):
+def write_to_file_NN_data_dict_io_nparray(df_hits):
     nrHits=df_hits.shape[0]
     if debug:
         print("nrHits",nrHits)
@@ -165,7 +167,7 @@ def write_to_file_NN_data_dict_valueInputOutput_nparray(df_hits):
         print("doTest=true, so hacking nrHits to be a small number("+str(nrHitsTest)+"), so that we run just a quick test")
     # done if
     counterBuckets=0
-    dict_valueInputOutput_list_list_value={}
+    dict_io_list_list_value={}
     for i in range (nrHits):
         isMultipleofBucketSize=(i%bucketSize==0)
         if isMultipleofBucketSize==False:
@@ -178,63 +180,63 @@ def write_to_file_NN_data_dict_valueInputOutput_nparray(df_hits):
         counterBuckets+=1
         df_bucket=df_hits[i:i+bucketSize]
         #
-        dict_valueInputOutput_list_value={}
-        dict_valueInputOutput_list_value["Input"]=get_list_inputValues(df_bucket,debug)
-        dict_valueInputOutput_list_value["Output"]=get_list_outputValues(df_bucket,debug)
-        for valueInputOutput in list_valueInputOutput:
+        dict_io_list_value={}
+        dict_io_list_value["Input"]=get_list_inputValues(df_bucket,debug)
+        dict_io_list_value["Output"]=get_list_outputValues(df_bucket,debug)
+        for io in list_io:
             if debug:
-                print("list_value "+valueInputOutput,dict_valueInputOutput_list_value[valueInputOutput]) 
-            if valueInputOutput not in dict_valueInputOutput_list_list_value:
-                dict_valueInputOutput_list_list_value[valueInputOutput]=[]
+                print("list_value "+io,dict_io_list_value[io]) 
+            if io not in dict_io_list_list_value:
+                dict_io_list_list_value[io]=[]
             else:
-                dict_valueInputOutput_list_list_value[valueInputOutput].append(dict_valueInputOutput_list_value[valueInputOutput])
+                dict_io_list_list_value[io].append(dict_io_list_value[io])
             # done if
-        # done for loop over valueInputOutput
+        # done for loop over io
     # done for loop over hits
     if debug:
         print("counterBuckets",counterBuckets)
     # done if
-    dict_valueInputOutput_nparray={}
-    for valueInputOutput in list_valueInputOutput:
-        print("length_"+valueInputOutput,len(dict_valueInputOutput_list_list_value[valueInputOutput]))
+    dict_io_nparray={}
+    for io in list_io:
+        print("length_"+io,len(dict_io_list_list_value[io]))
         # convert list_value to nparray
-        dict_valueInputOutput_nparray[valueInputOutput]=np.array(dict_valueInputOutput_list_list_value[valueInputOutput])
-        print_nparray(valueInputOutput,dict_valueInputOutput_nparray[valueInputOutput])
+        dict_io_nparray[io]=np.array(dict_io_list_list_value[io])
+        print_nparray(io,dict_io_nparray[io])
         # write nparray to file
-        np.save(dict_valueInputOutput_fileName[valueInputOutput],dict_valueInputOutput_nparray[valueInputOutput])
-    # done for loop over valueInputOutput
+        np.save(dict_io_fileName[io],dict_io_nparray[io])
+    # done for loop over io
 # done function
 
 #########################################################################################################
 #### Functions for reading back the numpy arrays from files and split them into train and test
 #########################################################################################################
 
-def write_to_file_NN_data_dict_valueInputOutput_valueTrainTest_nparray():
-    dict_valueInputOutput_valueTrainTest_nparray={}
-    for valueInputOutput in list_valueInputOutput:
-        nparray=np.load(dict_valueInputOutput_fileName[valueInputOutput])
-        print_nparray(valueInputOutput,nparray)
+def write_to_file_NN_data_dict_io_tt_nparray():
+    dict_io_tt_nparray={}
+    for io in list_io:
+        nparray=np.load(dict_io_fileName[io])
+        print_nparray(io,nparray)
         nrRow=nparray.shape[0]
-        dict_valueTrainTest_list_index={}
-        dict_valueTrainTest_list_index["Train"]=[i for i in range(nrRow) if i%2==0] # even indices
-        dict_valueTrainTest_list_index["Test"] =[i for i in range(nrRow) if i%2==1] # odd  indices
-        for valueTrainTest in list_valueTrainTest:
-            dict_valueInputOutput_valueTrainTest_nparray[valueInputOutput+valueTrainTest]=nparray[dict_valueTrainTest_list_index[valueTrainTest],:]
+        dict_tt_list_index={}
+        dict_tt_list_index["Train"]=[i for i in range(nrRow) if i%2==0] # even indices
+        dict_tt_list_index["Test"] =[i for i in range(nrRow) if i%2==1] # odd  indices
+        for tt in list_tt:
+            dict_io_tt_nparray[io+tt]=nparray[dict_tt_list_index[tt],:]
             # write nparray to file
-            np.save(dict_valueInputOutput_valueTrainTest_fileName[valueInputOutput+valueTrainTest],dict_valueInputOutput_valueTrainTest_nparray[valueInputOutput+valueTrainTest])
-        # done for loop over valueTrainTest
-    # done for loop over valueInputOutput
+            np.save(dict_io_tt_fileName[io+tt],dict_io_tt_nparray[io+tt])
+        # done for loop over tt
+    # done for loop over io
 # done function
 
-def read_from_file_NN_data_dict_valueInputOutput_valueTrainTest_nparray():
-    dict_valueInputOutput_valueTrainTest_nparray={}
-    for valueInputOutput in list_valueInputOutput:
-        for valueTrainTest in list_valueTrainTest:
-            dict_valueInputOutput_valueTrainTest_nparray[valueInputOutput+valueTrainTest]=np.load(dict_valueInputOutput_valueTrainTest_fileName[valueInputOutput+valueTrainTest])
-            print_nparray(valueInputOutput+valueTrainTest,dict_valueInputOutput_valueTrainTest_nparray[valueInputOutput+valueTrainTest])
-        # done for loop over valueTrainTest
-    # done for loop over valueInputOutput
-    return dict_valueInputOutput_valueTrainTest_nparray[valueInputOutput+valueTrainTest]       
+def read_from_file_NN_data_dict_io_tt_nparray():
+    dict_io_tt_nparray={}
+    for io in list_io:
+        for tt in list_tt:
+            dict_io_tt_nparray[io+tt]=np.load(dict_io_tt_fileName[io+tt])
+            print_nparray(io+tt,dict_io_tt_nparray[io+tt])
+        # done for loop over tt
+    # done for loop over io
+    return dict_io_tt_nparray[io+tt]       
 # done function
 
 #########################################################################################################
@@ -278,11 +280,11 @@ def prepare_NN_model(bucketSize,k):
 def doItAll():
     if doNNInputOutput:
         df_hits=get_df_hits_for_one_event(eventNumber)
-        write_to_file_NN_data_dict_valueInputOutput_nparray(df_hits,doWriteOnlyAnEvenNumberOfBuckets=False)
+        write_to_file_NN_data_dict_io_nparray(df_hits)
     if doNNInputOutputTrainTest:
-        write_to_file_NN_data_dict_valueInputOutput_valueTrainTest_nparray()
+        write_to_file_NN_data_dict_io_tt_nparray()
     if doNNTrain:
-        dict_valueInputOutput_valueTrainTest_nparray=read_from_file_NN_data_dict_valueInputOutput_valueTrainTest_nparray()
+        dict_io_tt_nparray=read_from_file_NN_data_dict_io_tt_nparray()
         model=prepare_NN_model(bucketSize,k)
     # done if
 # done function
