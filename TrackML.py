@@ -19,7 +19,7 @@ debug=False
 verbose=True
 doTest=False
 
-string_stage="01000" # all steps
+string_stage="00100" # all steps
 
 # output stem
 inputFolderName="./input"
@@ -226,19 +226,15 @@ def write_to_file_NN_data_dict_valueInputOutput_valueTrainTest_nparray():
     # done for loop over valueInputOutput
 # done function
 
-# only one function for train and test, to be called twice, once for train, once for test
-def get_nparray_train_test(name,fileNameNNInputOrOutput):
-    if debug:
-        print("get_nparray_train_test for name",name,"fileNameNNInputOrOutput",fileNameNNInputOrOutput)
-    nparray=np.load(fileNameNNInputOrOutput)
-    print_nparray(name,nparray)
-    l_even=[i for i in range(nparray.shape[0]) if i%2==0]
-    nparray_train=nparray[l_even,:]
-    print_nparray(name+" train",nparray_train)
-    l_odd=[i for i in range(nparray.shape[0]) if i%2==1]
-    nparray_test=nparray[l_odd,:]
-    print_nparray(name+" test",nparray_test)
-    return nparray_train,nparray_test
+def read_from_file_NN_data_dict_valueInputOutput_valueTrainTest_nparray():
+    dict_valueInputOutput_valueTrainTest_nparray={}
+    for valueInputOutput in list_valueInputOutput:
+        for valueTrainTest in list_valueTrainTest:
+            dict_valueInputOutput_valueTrainTest_nparray[valueInputOutput+valueTrainTest]=np.load(dict_valueInputOutput_valueTrainTest_fileName[valueInputOutput+valueTrainTest])
+            print_nparray(valueInputOutput+valueTrainTest,dict_valueInputOutput_valueTrainTest_nparray[valueInputOutput+valueTrainTest])
+        # done for loop over valueTrainTest
+    # done for loop over valueInputOutput
+    return dict_valueInputOutput_valueTrainTest_nparray[valueInputOutput+valueTrainTest]       
 # done function
 
 #########################################################################################################
@@ -250,6 +246,9 @@ def get_nparray_train_test(name,fileNameNNInputOrOutput):
 # https://keras.io/layers/core/
 # https://keras.io/activations/
 def prepare_NN_model(bucketSize,k):
+    if debug or verbose:
+        print("")
+        print("Prepare empty NN model (fixed geometry and weights filled with random numbers).")
     # create empty model
     model=keras.models.Sequential()
     # define the geometry by defining how many layers and how many nodes per layer
@@ -283,6 +282,7 @@ def doItAll():
     if doNNInputOutputTrainTest:
         write_to_file_NN_data_dict_valueInputOutput_valueTrainTest_nparray()
     if doNNTrain:
+        dict_valueInputOutput_valueTrainTest_nparray=read_from_file_NN_data_dict_valueInputOutput_valueTrainTest_nparray()
         model=prepare_NN_model(bucketSize,k)
     # done if
 # done function
