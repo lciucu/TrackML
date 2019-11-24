@@ -218,9 +218,19 @@ def get_nparray_train_test(name,fileNameNNInputOrOutput):
     if debug:
         print("get_nparray_train_test for name",name,"fileNameNNInputOrOutput",fileNameNNInputOrOutput)
     nparray=np.load(fileNameNNInputOrOutput)
-   # print(nparray)
-   # print(nparray.shape)
     print_nparray(name,nparray)
+    l=[]
+    for i in range(nparray.shape[0]):
+        even=i%2==0 
+        if even==False:
+            continue
+        if debug:
+            print (i)
+        l.append(i)
+    # done for list
+    l2=[i for i in range(nparray.shape[0]) if i%2==0]
+    nparray_train=nparray[l2,:]
+    print_nparray(name+" train",nparray_train)
     return 1,2
 # done function
 
