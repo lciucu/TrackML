@@ -1,0 +1,1 @@
+Implementing the project from this [kaggle competition](this https://www.kaggle.com/c/trackml-particle-identification) first in a jupyter notebook, and later in pure python. 
