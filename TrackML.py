@@ -19,7 +19,7 @@ debug=False
 verbose=True
 doTest=False
 
-string_stage="11100" # all steps
+string_stage="01100" # all steps
 
 # output stem
 inputFolderName="./input"
@@ -148,9 +148,9 @@ def get_list_outputValues(df_bucket,debug):
         hit=df_bucket.iloc[i]
         particle_id=hit["particle_id"]
         if particle_id==particle_id_most_common:
-            output=1
+            output=1.0
         else:
-            output=0
+            output=0.0
         if debug and False:
             print("i", i,"particle_id",particle_id,"particle_id_most_common",particle_id_most_common,"output",output)
         list_outputValues.append(output)
@@ -201,6 +201,7 @@ def write_to_file_NN_data_dict_io_nparray(df_hits):
         print("length_"+io,len(dict_io_list_list_value[io]))
         # convert list_value to nparray
         dict_io_nparray[io]=np.array(dict_io_list_list_value[io])
+        # print 
         print_nparray(io,dict_io_nparray[io])
         # write nparray to file
         np.save(dict_io_fileName[io],dict_io_nparray[io])
@@ -222,6 +223,11 @@ def write_to_file_NN_data_dict_io_tt_nparray():
         dict_tt_list_index["Test"] =[i for i in range(nrRow) if i%2==1] # odd  indices
         for tt in list_tt:
             dict_io_tt_nparray[io+tt]=nparray[dict_tt_list_index[tt],:]
+            if io=="Input":
+                # reshape to have an extra dimension of size one, needed by Keras
+                dict_io_tt_nparray[io+tt]=dict_io_tt_nparray[io+tt].reshape(dict_io_tt_nparray[io+tt].shape[0],dict_io_tt_nparray[io+tt].shape[1],1)
+            # print
+            print_nparray(io+tt,dict_io_tt_nparray[io+tt])
             # write nparray to file
             np.save(dict_io_tt_fileName[io+tt],dict_io_tt_nparray[io+tt])
         # done for loop over tt
@@ -236,7 +242,7 @@ def read_from_file_NN_data_dict_io_tt_nparray():
             print_nparray(io+tt,dict_io_tt_nparray[io+tt])
         # done for loop over tt
     # done for loop over io
-    return dict_io_tt_nparray[io+tt]       
+    return dict_io_tt_nparray
 # done function
 
 #########################################################################################################
@@ -272,6 +278,24 @@ def prepare_NN_model(bucketSize,k):
     return model
 # done function
 
+def train_NN_model(dict_io_tt_nparray,model,nameNN,nrEpoch,batchSize):
+    if verbose:
+        print("Start train NN for",nameNN)
+    # fit the model
+    for io in list_io:
+        for tt in list_tt:
+            print_nparray(io+" "+tt,dict_io_tt_nparray[io+tt])
+    # done forloop
+    h=model.fit(
+        dict_io_tt_nparray["Input"+"Train"],dict_io_tt_nparray["Output"+"Train"],
+        batch_size=batchSize,epochs=nrEpoch,verbose=1,
+        validation_data=(dict_io_tt_nparray["Input"+"Test"],dict_io_tt_nparray["Output"+"Test"]),
+        shuffle=False
+    )
+    if verbose:
+        print("  End train NN for",nameNN)
+# done function
+
 ########################################################################################################
 #### Function doAll() putting all together
 #######################################################################################################
@@ -286,6 +310,7 @@ def doItAll():
     if doNNTrain:
         dict_io_tt_nparray=read_from_file_NN_data_dict_io_tt_nparray()
         model=prepare_NN_model(bucketSize,k)
+        train_NN_model(dict_io_tt_nparray,model,nameNN="first_try",nrEpoch=20,batchSize=200)
     # done if
 # done function
 
