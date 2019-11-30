@@ -15,11 +15,11 @@ np.random.seed(98383822)
 #### configuration options
 #########################################################################################################
 
-debug=False
+debug=True
 verbose=True
 doTest=False
 
-string_stage="01100" # all steps
+string_stage="00100" # all steps
 
 # output stem
 inputFolderName="./input"
@@ -29,6 +29,8 @@ outputFolderName="./output"
 list_io="Input,Output".split(",")
 # valueTrainTest=tt
 list_tt="Train,Test".split(",")
+# valueLossAccuracy=la
+list_la="Loss,Accuracy".split(",")
 
 dict_io_fileName={}
 for io in list_io:
@@ -38,6 +40,13 @@ dict_io_tt_fileName={}
 for io in list_io:
     for tt in list_tt:
         dict_io_tt_fileName[io+tt]=outputFolderName+"/NN_data_2_"+io+tt+".npy"
+        
+dict_la_tt_fileName={}
+for la in list_la:
+    for tt in list_tt:
+        dict_la_tt_fileName[la+tt]=outputFolderName+"/NN_3_learn_"+la+tt+".npy"
+dict_la_tt_fileName["nrEpoch"]=outputFolderName+"/NN_3_learn_"+"nrEpoch"+".npy"
+
     
 eventNumber="000021069"
 
@@ -292,6 +301,25 @@ def train_NN_model(dict_io_tt_nparray,model,nameNN,nrEpoch,batchSize):
         validation_data=(dict_io_tt_nparray["Input"+"Test"],dict_io_tt_nparray["Output"+"Test"]),
         shuffle=False
     )
+    if debug:
+        print("h.history")
+        print(h.history)
+        print("h.history.keys()")
+        print(h.history.keys())
+        print("print(h.history['val_loss'])")
+        print(h.history['val_loss'],type(h.history['val_loss']))
+    # losses and accuracy
+    dict_la_tt_nparray={
+         "Loss"+"Train":np.array(h.history['loss']),
+         "Loss"+"Test":np.array(h.history['val_loss']),
+         "Accuracy"+"Train":np.array(h.history['accuracy']),
+         "Accuracy"+"Test":np.array(h.history['val_accuracy']),
+         "nrEpoch":np.array(range(nrEpoch)),
+     }
+    # write to .npy files
+    for key in dict_la_tt_nparray.keys():
+        np.save(dict_la_tt_fileName[key],dict_la_tt_nparray[key])
+    # all done
     if verbose:
         print("  End train NN for",nameNN)
 # done function
@@ -310,7 +338,7 @@ def doItAll():
     if doNNTrain:
         dict_io_tt_nparray=read_from_file_NN_data_dict_io_tt_nparray()
         model=prepare_NN_model(bucketSize,k)
-        train_NN_model(dict_io_tt_nparray,model,nameNN="first_try",nrEpoch=20,batchSize=200)
+        train_NN_model(dict_io_tt_nparray,model,nameNN="first_try",nrEpoch=3,batchSize=200)
     # done if
 # done function
 
