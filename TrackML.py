@@ -436,28 +436,30 @@ def test_plot():
 # done function()
 
 def test_plot2():
-    list_tupleArray=[]
-    nparray_x=np.load(dict_la_tt_fileName["nrEpoch"])
-    nparray_y1=np.load(dict_la_tt_fileName["Accuracy"+"Train"])
-    nparray_y2=np.load(dict_la_tt_fileName["Accuracy"+"Test"])
-    print_nparray("x-nrEpoch",nparray_x)
-    print_nparray("y1-AccuracyTrain",nparray_y1)
-    print_nparray("y2-AccuracyTrain",nparray_y2)
-    color1="r"
-    color2="b"
-    legendName1="Accuracy Train"
-    legendName2="Accuracy Test"
-    list_tupleArray.append((nparray_x,nparray_y1,color1,legendName1))
-    list_tupleArray.append((nparray_x,nparray_y2,color2,legendName2))
-    outputFileName=outputFolderName+"/NN_plot1D_optionTrainTest_"+"Accuracy"
-    extensions="png,pdf"
-    plotRange=[-1,-1]
-    overlayGraphsValues(list_tupleArray,outputFileName=outputFileName,extensions=extensions,
-                        info_x=["Number of epochs",[-1,-1],"linear"],
-                        info_y=["Value of the "+"Accuracy"+" function",plotRange,"linear"],
-                        info_legend=["best"],title="NN_"+"Accuracy",debug=False)
+    for la in list_la:
     
-# done function()
+        list_tupleArray=[]
+        nparray_x=np.load(dict_la_tt_fileName["nrEpoch"])
+        nparray_y1=np.load(dict_la_tt_fileName[la+"Train"])
+        nparray_y2=np.load(dict_la_tt_fileName[la+"Test"])
+        print_nparray("x-nrEpoch",nparray_x)
+        print_nparray("y1-"+la+" Train",nparray_y1)
+        print_nparray("y2-"+la+" Test",nparray_y2)
+        color1="r"
+        color2="b"
+        legendName1=la+" Train"
+        legendName2=la+" Test"
+        list_tupleArray.append((nparray_x,nparray_y1,color1,legendName1))
+        list_tupleArray.append((nparray_x,nparray_y2,color2,legendName2))
+        outputFileName=outputFolderName+"/NN_plot1D_optionTrainTest_"+la
+        extensions="png,pdf"
+        plotRange=[-1,-1]
+        overlayGraphsValues(list_tupleArray,outputFileName=outputFileName,extensions=extensions,
+                            info_x=["Number of epochs",[-1,-1],"linear"],
+                            info_y=["Value of the "+la+" function",plotRange,"linear"],
+                            info_legend=["best"],title="NN_"+la,debug=False)
+    # done for loop    
+# done function
 
 
 
