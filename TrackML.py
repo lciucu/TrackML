@@ -4,6 +4,7 @@
 import sys
 import os
 
+
 # import to use numpy arrays
 import numpy as np
 # to obtain reproducible results, meaning each new NN training to obtain the same result, set the seed of the random number now
@@ -19,7 +20,7 @@ debug=True
 verbose=True
 doTest=False
 
-string_stage="00100" # all steps
+string_stage="00001" # all steps
 
 # output stem
 inputFolderName="./input"
@@ -80,6 +81,10 @@ if doNNInputOutput:
 if doNNTrain or doNNAnalyze:
     import keras
 
+if doPlot:
+    #import matplotlib.pylab as pylab
+    import matplotlib.pyplot as plt
+   
 #########################################################################################################
 #### Functions general
 #######################################################################################################
@@ -320,9 +325,119 @@ def train_NN_model(dict_io_tt_nparray,model,nameNN,nrEpoch,batchSize):
     for key in dict_la_tt_nparray.keys():
         np.save(dict_la_tt_fileName[key],dict_la_tt_nparray[key])
     # all done
+
+def analyze_NN_model(nameNN,model,io,tt):
+    if verbose:
+        print("Start train NN for",nameNN)
+    fileNameWeights=get_fileNameWeights(nameNN)
+    model.load_weights(fileNameWeights)
     if verbose:
         print("  End train NN for",nameNN)
 # done function
+
+
+########################################################################################################
+#### Functions about plotting
+#######################################################################################################
+
+def overlayGraphsValues(list_tupleArray,outputFileName="overlay",extensions="pdf,png",info_x=["Procent of data reduced",[0.0,1.0],"linear"],info_y=["Figure of merit of performance",[0.0,100000.0],"log"],info_legend=["best"],title="Loss and Accuracy",debug=False):
+    if debug:
+        print("Start overlayGraphsValues")
+        print("outputFileName",outputFileName)
+        print("extensions",extensions)
+        print("info_x",info_x)
+        print("info_y",info_y)
+        print("info_legend",info_legend)
+        print("title",title)
+    # x axis
+    x_label=info_x[0]
+    x_lim=info_x[1]
+    x_lim_min=x_lim[0]
+    x_lim_max=x_lim[1]
+    if x_lim_min==-1 and x_lim_max==-1:
+        x_set_lim=False
+    else:
+        x_set_lim=True
+    x_scale=info_x[2]
+    if debug:
+        print("x_label",x_label,type(x_label))
+        print("x_lim_min",x_lim_min,type(x_lim_min))
+        print("x_lim_max",x_lim_max,type(x_lim_max))
+        print("x_set_lim",x_set_lim,type(x_set_lim))
+        print("x_scale",x_scale,type(x_scale))
+    # y axis
+    y_label=info_y[0]
+    y_lim=info_y[1]
+    y_lim_min=y_lim[0]
+    y_lim_max=y_lim[1]
+    if y_lim_min==-1 and y_lim_max==-1:
+        y_set_lim=False
+    else:
+        y_set_lim=True
+    y_scale=info_y[2]
+    if debug:
+        print("y_label",y_label,type(y_label))
+        print("y_lim_min",y_lim_min,type(y_lim_min))
+        print("y_lim_max",y_lim_max,type(y_lim_max))
+        print("y_set_lim",y_set_lim,type(y_set_lim))
+        print ("y_scale",y_scale,type(y_scale))
+    # create empty figure
+    plt.figure(1)
+    # set x-axis
+    plt.xlabel(x_label)
+    if x_set_lim==True:
+        plt.xlim(x_lim_min,x_lim_max)
+    plt.xscale(x_scale)
+    # set y-axis
+    plt.ylabel(y_label)
+    if y_set_lim==True:
+        plt.ylim(y_lim_min,y_lim_max)
+    plt.yscale(y_scale)
+    # set title
+    plt.title(title)
+    # fill content of plot
+    for i,tupleArray in enumerate(list_tupleArray):
+        if debug:
+            print("i",i,"len",len(tupleArray))
+        x=tupleArray[0]
+        y=tupleArray[1]
+        c=tupleArray[2]
+        l=tupleArray[3]
+        plt.plot(x,y,c,label=l)
+    # done loop over each element to plot
+    # set legend
+    plt.legend(loc=info_legend[0])
+    # for each extension create a plot
+    for extension in extensions.split(","):
+        fileNameFull=outputFileName+"."+extension
+        print("Saving plot at",fileNameFull)
+        plt.savefig(fileNameFull)
+    # close the figure
+    plt.close()
+# done function()
+
+def test_plot():
+    list_tupleArray=[]
+    nparray_x=np.load(dict_la_tt_fileName["nrEpoch"])
+    nparray_y=np.load(dict_la_tt_fileName["Accuracy"+"Train"])
+    print_nparray("x-nrEpoch",nparray_x)
+    print_nparray("y-AccuracyTrain",nparray_y)
+    color="r"
+    legendName="Accuracy Train"
+    list_tupleArray.append((nparray_x,nparray_y,color,legendName))
+    outputFileName=outputFolderName+"/NN_plot1D_optionTrainTest_"+"Accuracy"
+    extensions="png,pdf"
+    plotRange=[-1,-1]
+    overlayGraphsValues(list_tupleArray,outputFileName=outputFileName,extensions=extensions,
+                        info_x=["Number of epochs",[-1,-1],"linear"],
+                        info_y=["Value of the "+"Accuracy"+" function",plotRange,"linear"],
+                        info_legend=["best"],title="NN_"+"Accuracy",debug=False)
+    
+# done function()
+
+
+
+
 
 ########################################################################################################
 #### Function doAll() putting all together
@@ -338,8 +453,12 @@ def doItAll():
     if doNNTrain:
         dict_io_tt_nparray=read_from_file_NN_data_dict_io_tt_nparray()
         model=prepare_NN_model(bucketSize,k)
-        train_NN_model(dict_io_tt_nparray,model,nameNN="first_try",nrEpoch=3,batchSize=200)
+        train_NN_model(dict_io_tt_nparray,model,nameNN="first_try",nrEpoch=200,batchSize=200)
+
+    if doPlot:
+        test_plot()
     # done if
+    
 # done function
 
 #########################################################################################################
