@@ -435,6 +435,30 @@ def test_plot():
     
 # done function()
 
+def test_plot2():
+    list_tupleArray=[]
+    nparray_x=np.load(dict_la_tt_fileName["nrEpoch"])
+    nparray_y1=np.load(dict_la_tt_fileName["Accuracy"+"Train"])
+    nparray_y2=np.load(dict_la_tt_fileName["Accuracy"+"Test"])
+    print_nparray("x-nrEpoch",nparray_x)
+    print_nparray("y1-AccuracyTrain",nparray_y1)
+    print_nparray("y2-AccuracyTrain",nparray_y2)
+    color1="r"
+    color2="b"
+    legendName1="Accuracy Train"
+    legendName2="Accuracy Test"
+    list_tupleArray.append((nparray_x,nparray_y1,color1,legendName1))
+    list_tupleArray.append((nparray_x,nparray_y2,color2,legendName2))
+    outputFileName=outputFolderName+"/NN_plot1D_optionTrainTest_"+"Accuracy"
+    extensions="png,pdf"
+    plotRange=[-1,-1]
+    overlayGraphsValues(list_tupleArray,outputFileName=outputFileName,extensions=extensions,
+                        info_x=["Number of epochs",[-1,-1],"linear"],
+                        info_y=["Value of the "+"Accuracy"+" function",plotRange,"linear"],
+                        info_legend=["best"],title="NN_"+"Accuracy",debug=False)
+    
+# done function()
+
 
 
 
@@ -456,7 +480,7 @@ def doItAll():
         train_NN_model(dict_io_tt_nparray,model,nameNN="first_try",nrEpoch=200,batchSize=200)
 
     if doPlot:
-        test_plot()
+        test_plot2()
     # done if
     
 # done function
