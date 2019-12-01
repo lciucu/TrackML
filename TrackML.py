@@ -48,6 +48,8 @@ for la in list_la:
         dict_la_tt_fileName[la+tt]=outputFolderName+"/NN_3_learn_"+la+tt+".npy"
 dict_la_tt_fileName["nrEpoch"]=outputFolderName+"/NN_3_learn_"+"nrEpoch"+".npy"
 
+list_color=["r","b","m","k","g","o"]
+
     
 eventNumber="000021069"
 
@@ -437,28 +439,24 @@ def test_plot():
 
 def test_plot2():
     for la in list_la:
-    
         list_tupleArray=[]
         nparray_x=np.load(dict_la_tt_fileName["nrEpoch"])
-        nparray_y1=np.load(dict_la_tt_fileName[la+"Train"])
-        nparray_y2=np.load(dict_la_tt_fileName[la+"Test"])
         print_nparray("x-nrEpoch",nparray_x)
-        print_nparray("y1-"+la+" Train",nparray_y1)
-        print_nparray("y2-"+la+" Test",nparray_y2)
-        color1="r"
-        color2="b"
-        legendName1=la+" Train"
-        legendName2=la+" Test"
-        list_tupleArray.append((nparray_x,nparray_y1,color1,legendName1))
-        list_tupleArray.append((nparray_x,nparray_y2,color2,legendName2))
+        for i,tt in enumerate(list_tt):
+            nparray_y=np.load(dict_la_tt_fileName[la+tt])
+            print_nparray("y-"+la+tt,nparray_y)
+            color=list_color[i]
+            legendName=la+" "+tt
+            list_tupleArray.append((nparray_x,nparray_y,color,legendName))
+        # done for loop
         outputFileName=outputFolderName+"/NN_plot1D_optionTrainTest_"+la
         extensions="png,pdf"
         plotRange=[-1,-1]
         overlayGraphsValues(list_tupleArray,outputFileName=outputFileName,extensions=extensions,
                             info_x=["Number of epochs",[-1,-1],"linear"],
                             info_y=["Value of the "+la+" function",plotRange,"linear"],
-                            info_legend=["best"],title="NN_"+la,debug=False)
-    # done for loop    
+                            info_legend=["best"],title="NN_"+la,debug=False) 
+        # done for loop    
 # done function
 
 
