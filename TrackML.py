@@ -16,11 +16,15 @@ np.random.seed(98383822)
 #### configuration options
 #########################################################################################################
 
-debug=True
+debug=False
 verbose=True
 doTest=False
 
-string_stage="00001" # all steps
+#string_stage="11111" # all steps
+#string_stage="11000" # data
+#string_stage="00100" # NN train
+#string_stage="00010" # NN analyze
+string_stage="00001" # plot
 
 # output stem
 inputFolderName="./input"
@@ -35,28 +39,19 @@ list_la="Loss,Accuracy".split(",")
 
 dict_io_fileName={}
 for io in list_io:
-    dict_io_fileName[io]=outputFolderName+"/NN_data_1_"+io+".npy"
+    dict_io_fileName[io]=outputFolderName+"/NN_1_data_"+io+".npy"
 
 dict_io_tt_fileName={}
 for io in list_io:
     for tt in list_tt:
-        dict_io_tt_fileName[io+tt]=outputFolderName+"/NN_data_2_"+io+tt+".npy"
-        
-dict_la_tt_fileName={}
-for la in list_la:
-    for tt in list_tt:
-        dict_la_tt_fileName[la+tt]=outputFolderName+"/NN_3_learn_"+la+tt+".npy"
-dict_la_tt_fileName["nrEpoch"]=outputFolderName+"/NN_3_learn_"+"nrEpoch"+".npy"
+        dict_io_tt_fileName[io+tt]=outputFolderName+"/NN_2_data_"+io+tt+".npy"
 
 list_color=["r","b","m","k","g","o"]
-
     
 eventNumber="000021069"
 
 bucketSize=20
-k=2
 nrNodesInputLayer=bucketSize*3 # three inputs (x, y, z) for each hit in the batch
-nrNodesHiddenLayer=bucketSize*k # let the user change this k as hyper-parameter
 nrNodesOutputLayer=bucketSize*1 # one output for each hit in the batch
 nrHitsTest=bucketSize*4 # 2 in test 2 in train
 
@@ -84,8 +79,31 @@ if doNNTrain or doNNAnalyze:
     import keras
 
 if doPlot:
-    #import matplotlib.pylab as pylab
     import matplotlib.pyplot as plt
+    
+# for DNN training with Keras
+# the order is layer and k (from architecture), nrEpoch, batchSize (from learning steps)
+list_infoNN=[
+    # ["A1",2,10,200],
+    ["A1",2,300,200],
+    ["A2",2,300,200],
+    ["A3",2,300,200],
+    ["A1",4,300,200],
+    ["A2",4,300,200],
+    ["A3",4,300,200],
+    ["A1",8,300,200],
+    ["A2",8,300,200],
+    ["A3",8,300,200],
+    ["A1",2,300,1000],
+    ["A2",2,300,1000],
+    ["A3",2,300,1000],
+    ["A1",4,300,1000],
+    ["A2",4,300,1000],
+    ["A3",4,300,1000],
+    ["A1",8,300,1000],
+    ["A2",8,300,1000],
+    ["A3",8,300,1000],
+]
    
 #########################################################################################################
 #### Functions general
@@ -107,6 +125,38 @@ def print_df(name,df):
         # print(df.head())
         # print(df.tail())
         print(df)
+# done function
+
+def get_from_infoNN(infoNN):
+    layer=infoNN[0]
+    k=infoNN[1]
+    nrEpoch=infoNN[2]
+    batchSize=infoNN[3]
+    if verbose:
+        print("Start do NN part for","layer",layer,"k",str(k),"nrEpoch",str(nrEpoch),"batchSize",str(batchSize))
+    nameNN="l_"+layer+"_k_"+str(k)+"_e_"+str(nrEpoch)+"_b_"+str(batchSize)
+    if debug:
+        print("nameNN",nameNN)
+    # done if
+    return nameNN,layer,k,nrEpoch,batchSize
+# done function
+
+def get_dict_la_tt_fileName(nameNN):
+    dict_la_tt_fileName={}
+    for la in list_la:
+        for tt in list_tt:
+            dict_la_tt_fileName[la+tt]=outputFolderName+"/NN_3_learn_"+la+tt+"_"+nameNN+".npy"
+    dict_la_tt_fileName["nrEpoch"]=outputFolderName+"/NN_3_learn_"+"nrEpoch"+"_"+nameNN+".npy"
+    # ready to return
+    return dict_la_tt_fileName
+# done function
+
+def get_fileNameWeights(nameNN):
+    fileNameWeights=outputFolderName+"/NN_3_learn_model_weights_"+nameNN+".hdf5"
+    if debug:
+        print("fileNameWeights",fileNameWeights)
+    # done if
+    return fileNameWeights
 # done function
 
 #########################################################################################################
@@ -269,21 +319,33 @@ def read_from_file_NN_data_dict_io_tt_nparray():
 # https://keras.io/getting-started/sequential-model-guide/
 # https://keras.io/layers/core/
 # https://keras.io/activations/
-def prepare_NN_model(bucketSize,k):
+def prepare_NN_model(layer="A3",k=4):
     if debug or verbose:
         print("")
         print("Prepare empty NN model (fixed geometry and weights filled with random numbers).")
+    nrNodesHiddenLayer=bucketSize*k # let the user change this k as hyper-parameter
     # create empty model
     model=keras.models.Sequential()
     # define the geometry by defining how many layers and how many nodes per layer
     # add input layer
+    # Flatten(): https://stackoverflow.com/questions/44176982/how-flatten-layer-works-in-keras?rq=1
     model.add(keras.layers.Dense(nrNodesInputLayer,activation='linear',input_shape=(nrNodesInputLayer,1)))
     # flatten input layer
     model.add(keras.layers.Flatten())
     # add hidden layers
-    model.add(keras.layers.Dense(nrNodesHiddenLayer,activation='relu'))
-    model.add(keras.layers.Dense(nrNodesHiddenLayer,activation='relu'))
-    model.add(keras.layers.Dense(nrNodesOutputLayer,activation='relu'))
+    if layer=="A1":
+        model.add(keras.layers.Dense(nrNodesHiddenLayer,activation='relu'))
+    elif layer=="A2":
+        model.add(keras.layers.Dense(nrNodesHiddenLayer,activation='relu'))
+        model.add(keras.layers.Dense(nrNodesHiddenLayer,activation='relu'))
+    elif layer=="A3":
+        model.add(keras.layers.Dense(nrNodesHiddenLayer,activation='relu'))
+        model.add(keras.layers.Dense(nrNodesHiddenLayer,activation='relu'))
+        model.add(keras.layers.Dense(nrNodesOutputLayer,activation='relu'))
+    else:
+        print("layer",layer,"not known. Choose A1,A2,A3. WILL ABORT!!!")
+        assert(False)
+    # done if
     # add output layer
     model.add(keras.layers.Dense(nrNodesOutputLayer,activation='sigmoid'))
     # finished defining the geometry, and now define how the NN learns (is trained)
@@ -323,11 +385,19 @@ def train_NN_model(dict_io_tt_nparray,model,nameNN,nrEpoch,batchSize):
          "Accuracy"+"Test":np.array(h.history['val_accuracy']),
          "nrEpoch":np.array(range(nrEpoch)),
      }
+    #
+    dict_la_tt_fileName=get_dict_la_tt_fileName(nameNN)
     # write to .npy files
     for key in dict_la_tt_nparray.keys():
         np.save(dict_la_tt_fileName[key],dict_la_tt_nparray[key])
-    # all done
+    # done for loop
+    # write learned weights of the model to .hdf5
+    fileNameWeights=get_fileNameWeights(nameNN)
+    model.save_weights(fileNameWeights)
+    # finished all tasks, nothing to return
+# done function
 
+    
 def analyze_NN_model(nameNN,model,io,tt):
     if verbose:
         print("Start train NN for",nameNN)
@@ -437,7 +507,8 @@ def test_plot():
     
 # done function()
 
-def test_plot2():
+def plot_Loss_Accuracy(nameNN):
+    dict_la_tt_fileName=get_dict_la_tt_fileName(nameNN)
     for la in list_la:
         list_tupleArray=[]
         nparray_x=np.load(dict_la_tt_fileName["nrEpoch"])
@@ -449,7 +520,7 @@ def test_plot2():
             legendName=la+" "+tt
             list_tupleArray.append((nparray_x,nparray_y,color,legendName))
         # done for loop
-        outputFileName=outputFolderName+"/NN_plot1D_optionTrainTest_"+la
+        outputFileName=outputFolderName+"/NN_plot1D_optionTrainTest_"+la+"_"+nameNN
         extensions="png,pdf"
         plotRange=[-1,-1]
         overlayGraphsValues(list_tupleArray,outputFileName=outputFileName,extensions=extensions,
@@ -474,15 +545,26 @@ def doItAll():
         write_to_file_NN_data_dict_io_nparray(df_hits)
     if doNNInputOutputTrainTest:
         write_to_file_NN_data_dict_io_tt_nparray()
-    if doNNTrain:
+    if doNNTrain or doNNAnalyze:
         dict_io_tt_nparray=read_from_file_NN_data_dict_io_tt_nparray()
-        model=prepare_NN_model(bucketSize,k)
-        train_NN_model(dict_io_tt_nparray,model,nameNN="first_try",nrEpoch=200,batchSize=200)
-
-    if doPlot:
-        test_plot2()
+        # loop over different NN that we compare (arhitecture and learning)
+        for infoNN in list_infoNN:
+            nameNN,layer,k,nrEpoch,batchSize=get_from_infoNN(infoNN)
+            # create empty train model architecture (layer and k), with bad initial random weights
+            model=prepare_NN_model(layer,k)
+            if doNNTrain:
+                train_NN_model(dict_io_tt_nparray,model,nameNN=nameNN,nrEpoch=nrEpoch,batchSize=batchSize)
+            if doNNAnalyze:
+                pass
+            # done if
+        # done for loop over infoNN
     # done if
-    
+    if doPlot:
+        # loop over different NN that we compare (arhitecture and learning)
+        for infoNN in list_infoNN:
+            nameNN,layer,k,nrEpoch,batchSize=get_from_infoNN(infoNN)
+            plot_Loss_Accuracy(nameNN)
+    # done if
 # done function
 
 #########################################################################################################
