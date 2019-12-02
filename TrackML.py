@@ -4,7 +4,6 @@
 import sys
 import os
 
-
 # import to use numpy arrays
 import numpy as np
 # to obtain reproducible results, meaning each new NN training to obtain the same result, set the seed of the random number now
@@ -21,10 +20,12 @@ verbose=True
 doTest=False
 
 #string_stage="11111" # all steps
-#string_stage="11000" # data
+string_stage="10000" # data I/O
+#string_stage="01000" # data I/O train/test
 #string_stage="00100" # NN train
 #string_stage="00010" # NN analyze
-string_stage="00001" # plot
+#string_stage="00001" # plot
+#string_stage="00000"
 
 # output stem
 inputFolderName="./input"
@@ -73,6 +74,9 @@ if debug:
 
 if doNNInputOutput:
     import pandas as pd
+    from annoy import AnnoyIndex
+    import random
+    import matplotlib.pyplot as plt
     from collections import Counter
 
 if doNNTrain or doNNAnalyze:
@@ -160,7 +164,7 @@ def get_fileNameWeights(nameNN):
 # done function
 
 #########################################################################################################
-#### Functions for creaing numpy arrays of input and output for NN training
+#### Functions for creating numpy arrays of input and output for NN training
 #########################################################################################################
 
 # df means panda data frame
@@ -180,6 +184,41 @@ def get_df_hits_for_one_event(eventNumber):
     df_hits=pd.concat([df_hits_recon,df_hits_truth],axis=1,sort=False)    
     print_df("df_hits",df_hits)
     return df_hits
+# done function
+
+def buildAnnoyIndex(data,metric="angular",ntrees=10):
+    f=len(data[0])
+    print("f",f)
+    t=AnnoyIndex(f,metric)
+    print("type(t)",type(t))
+    print("enumerate data")
+    for i,d in enumerate(data):
+        print("i",i,"d",d)
+        t.add_item(i,d)
+    # done for loop
+    t.build(ntrees) # 10 trees
+    return t
+# done function
+
+def study_annoy(df_hits,debug):
+    nparray_position=df_hits[["x","y","z"]].values
+    print_nparray("nparray_position",nparray_position)
+    index=buildAnnoyIndex(nparray_position,metric="angular",ntrees=10)
+    if debug or verbose:
+        print("type(index)",index)
+        print("len(df_hits)",len(df_hits))
+    n=random.choice(range(len(df_hits)))
+    if debug or verbose:
+        print("n",n)
+    list_index=index.get_nns_by_item(n,bucketSize)
+    if debug or verbose:
+        print("list_index",list_index)
+    nparray_index=np.array(list_index)
+    bucket=df_hits.iloc[nparray_index]
+    plt.plot(bucket.x,bucket.y,"o")
+    plt.plot(0,0,"r+")
+    plt.show()
+    plt.savefig(outputFolderName+"/test.png")
 # done function
 
 def get_list_inputValues(df_bucket,debug):
@@ -234,7 +273,7 @@ def write_to_file_NN_data_dict_io_nparray(df_hits):
     # done if
     counterBuckets=0
     dict_io_list_list_value={}
-    for i in range (nrHits):
+    for i in range(nrHits):
         isMultipleofBucketSize=(i%bucketSize==0)
         if isMultipleofBucketSize==False:
             continue
@@ -530,10 +569,6 @@ def plot_Loss_Accuracy(nameNN):
         # done for loop    
 # done function
 
-
-
-
-
 ########################################################################################################
 #### Function doAll() putting all together
 #######################################################################################################
@@ -543,6 +578,7 @@ def doItAll():
     if doNNInputOutput:
         df_hits=get_df_hits_for_one_event(eventNumber)
         write_to_file_NN_data_dict_io_nparray(df_hits)
+        study_annoy(df_hits,debug)
     if doNNInputOutputTrainTest:
         write_to_file_NN_data_dict_io_tt_nparray()
     if doNNTrain or doNNAnalyze:
