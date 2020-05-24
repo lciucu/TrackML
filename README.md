@@ -6,7 +6,7 @@ It contains four main steps:
 
 * `DataExploration.ipynb`
 
-* `Data,ipynb` (create input and output for NN training, with and without balancing the positive and negative hits)
+* `Data.ipynb` (create input and output for NN training, with and without balancing the positive and negative hits)
 
 * `NN.ipynb` (train NN, predict from NN, evaluate the predicted model, including also for each `VolumeID`)
 
@@ -14,8 +14,8 @@ It contains four main steps:
 
 There are also other scripts from various studies:
 
-* `DataExploration_check_for_cosmic_rays.ipynb` (checked for truth particles what is the closest point to the beam axis, confirming that all collisions are simulated in the center of the detector, and there are no cosmic rays simulated)
+* `DataExplorationCheckForCosmicRays.ipynb` (checked for truth particles what is the closest point to the beam axis, confirming that all collisions are simulated in the center of the detector, and there are no cosmic rays simulated)
 
 * `ConfusionMatrix.ipynb` (computes the confusion matrix from the numpy arrays of true positive, false positive, false negative, true negative)
 
-* `Overlay_several_buckets.ipynb` (plots that overlays several buckets)
+* `OverlaySeveralBuckets.ipynb` (plots that overlays several buckets)
