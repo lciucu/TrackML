@@ -19,3 +19,9 @@ There are also other scripts from various studies:
 * `ConfusionMatrix.ipynb` (computes the confusion matrix from the numpy arrays of true positive, false positive, false negative, true negative)
 
 * `OverlaySeveralBuckets.ipynb` (plots that overlays several buckets)
+
+Selected presentations slides in pdf:
+
+* [31 March 2020](https://gitlab.cern.ch/lciucu/TrackML/-/blob/master/slides/LuizaCiucuTrackML200331.pdf), presented at the ATLAS group at the University of Geneva
+
+* [22 May 2020](https://gitlab.cern.ch/lciucu/TrackML/-/blob/master/slides/LuizaCiucuTrackML200522.pdf), presented to my analysis group, comparing unbalanced and balanced relative to the positive vs negative hits
