@@ -3,3 +3,5 @@
 .ipynb_checkpoints
 output*
 .DS_Store
+bk*
+data
