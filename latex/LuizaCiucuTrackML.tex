@@ -20,7 +20,7 @@
 \includegraphics[height=2.1cm]{./physics_section_EN_q-eps-converted-to.pdf} 
 }
 
-\date{10 July 2020}
+\date{17 July 2020}
 
 \pdfsuppresswarningpagegroup=1
 
@@ -77,33 +77,44 @@
 \item[-] Reduce nbPositiveHit=0 until 50\% Pos, 50\% Neg.
 \end{enumerate}
 \item[o] Train in Balanced, evaluate in Test in Unbalanced.
-\item[o] Last time showed how peak at 17 gives best results.
- \begin{enumerate}
-\item[-] Many values at bin, and almost nothing at bins 1-9 (out of 21)
-\item[-] But problem that only a peak in 1-2 bins around bin 14.
+\item[o] Last time tuned the hyperparameters for the best model (dark blue in our plots): \texttt{\detokenize{02_05_E_SH_A_0120}} $\rightarrow$ \texttt{\detokenize{03_10_R_RH_B_1200}}.
+\begin{enumerate}
+\item[-] 02 $\rightarrow$ 03 hidden layers
+\item[-] 05 x 20 $\rightarrow$ 10 x 20 nodes on each hidden layer. \\ Input layer has 3 x 20 nodes, output layer has 1 x 20 nodes.
+\item[-] Elu $\rightarrow$ Relu activation function for all nodes on all the hidden layers. 
+\item[-] Squared Hinge $\rightarrow$ Regular Hinge as loss function.
+\item[-] Added one dropout layer (0.2) at the end of the hidden layers.
+\item[-] 120 $\rightarrow$ 1200 epochs, each with batch size of 50000.
+\item[-] Kept Tanh activation function on the output layer.
 \end{enumerate}
-\item[o] New studies today:
- \begin{enumerate}
-\item[-] Tried other model settings.
-\item[-] Also added a dropout(0.2) layer at the end of the hidden layers.
-\end{enumerate}
+\item[o] New studies today: calculate efficiency of particle reconstruction.
 \end{enumerate}
 \end{frame}
 \clearpage
 
-\begin{frame}{Model changes}
+
+
+\begin{frame}{Calculate efficiency of particle reconstruction}
 \begin{enumerate}
-\item[o] Naming convention of model description, e,g. \texttt{\detokenize{02_05_E_RH_A_0120}}.
+\item[o] numpy arrays: output and output predicted.
 \begin{enumerate}
-\item[-] 02 hidden layers
-\item[-] 05 x 20 nodes on the hidden layer. \\ Input layer has 3 x 20 nodes, output layer has 1 x 20 nodes.
-\item[-] E = elu activation function for all nodes on all the hidden layers. \\ Other options: R = relu.
-\item[-] RH = regular hinge loss function (power one). \\ Other options: SH = squared hinge loss function (power two).
-\item[-] A = no dropout layer at the end of hidden layers. \\ Option options: B = one dropout layer at the end of the hidden layers.
-\item[-] 0120 number of epochs, each with batch size of 50000. \\ Other options: 600, 1200. 
+\item[-] each row is a bucket.
+\item[-] 20 columns (20 hits)
 \end{enumerate}
-\item[o] Today they all have Tanh activation function on the output layer. \\ Squared non linear and soft sign were not that good.
-\item[o] Comparing best models from last week with the best models from this week.
+\item[o] Loop over buckets. For each bucket first loop over hit indices:
+\begin{enumerate}
+\item[-] for each hit index have the output and output predicted value (-1 or 1).
+\item[-] nbHitPositive = count nb of hits that are positive
+\item[-] nbHitTruePositive = count nb of hits that are both positive and predicted positive
+\end{enumerate}
+\item[o] For the current bucket if nbHitPositive $\ge10$ consider the bucket has a truth particle in it. 
+\item[o] If in addition the bucket also has nbHitTruePositive/nbHitPositive $>$ 80\%, consider the bucket has also reconstructed that particle.
+\item[o] Increase counters for both. At the end of the loop over buckets, calculate efficiency as nbParticleReco / nbParticleTruth.
+\item[o] Train or Test, eff, nb bucket, nb particle truth, nb particle recon.
+\item[o] Train Balanced, particle efficiency=84.2\%, 130k,  94k, 79k.
+\item[o] Test Balanced, particle efficiency=74.9\%, 62k,  45k, 34k.
+\item[o] Test Unbalanced, particle efficiency=71.3\%, 3219k,  1178k, 840k.
+\item[o] 
 \end{enumerate}
 \end{frame}
 \clearpage
@@ -181,7 +192,7 @@ $\frac{\TP+\TN}{\TP+\FP+\FN+\TN}$ & $\frac{\TP}{\TP+\FP}$  & $\frac{\TP}{\TP+\FN
 \includegraphics[width=0.32\textwidth]{\inputFolderOverlay/plot_03_1_overlay_graph_Recall_VolumeID_Test.pdf}\\
 \end{frame}
 
-\begin{frame}{Conclusion}
+\begin{frame}{Conclusion 1/2}
 \begin{enumerate}
 \item[o] Improved model from last week.
 \item[o] In balanced dataset (Train and Test) a diagonal can be nicely seen.
@@ -196,6 +207,17 @@ $\frac{\TP+\TN}{\TP+\FP+\FN+\TN}$ & $\frac{\TP}{\TP+\FP}$  & $\frac{\TP}{\TP+\FN
 \item[-] 120 $\rightarrow$ 1200 epochs, each with batch size of 50000.
 \item[-] Kept Tanh activation function on the output layer.
 \end{enumerate}
+\end{enumerate}
+\end{frame}
+\clearpage
+
+\begin{frame}{Conclusion 2/2}
+\begin{enumerate}
+\item[o] Evaluated for this best model the efficiency of particle reconstruction:
+\item[o] Train or Test, eff, nb bucket, nb particle truth, nb particle recon.
+\item[o] Train Balanced, particle efficiency=84.2\%, 130k,  94k, 79k.
+\item[o] Test Balanced, particle efficiency=74.9\%, 62k,  45k, 34k.
+\item[o] Test Unbalanced, particle efficiency=71.3\%, 3219k,  1178k, 840k.
 \item[o] This model seems good enough.
 \item[o] Next step: add these results in the thesis. 
 \end{enumerate}
@@ -260,6 +282,7 @@ $\frac{\TP+\TN}{\TP+\FP+\FN+\TN}$ & $\frac{\TP}{\TP+\FP}$  & $\frac{\TP}{\TP+\FN
 \item[-] Very similar with various loss functions: squared hinge and hinge.
 \item[-] Overtrain at 50 epochs maybe a false alarm? As 50 epochs slight worse than 120 epochs. Try 120 epochs vs 50 epochs.
 \end{enumerate}
+
 \end{enumerate}
 \end{frame}
 \clearpage
