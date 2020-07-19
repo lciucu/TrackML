@@ -20,7 +20,9 @@
 \includegraphics[height=2.1cm]{./physics_section_EN_q-eps-converted-to.pdf} 
 }
 
-\date{03 July 2020}
+\date{10 July 2020}
+
+\pdfsuppresswarningpagegroup=1
 
 \begin{document}
 
@@ -32,7 +34,7 @@
 \newcommand\inputFolderMerge{../output_new_ev_000_100_min_10}
 \newcommand\inputFolderMergedBalanced{../output_new_ev_000_100_min_10_balanced17}
 \newcommand\inputFolderNN{../output_new_ev_000_100_min_10_NN_07}
-\newcommand\inputFolderOverlay{../output_overlay_balanced_ev_000_100_Min10_17}
+\newcommand\inputFolderOverlay{../output_overlay_balanced_ev_000_100_Min10_17_B}
 
 % add some useful definitions
 %\def\MeV{\ifmmode {\mathrm{\ Me\kern -0.1em V}}\else
@@ -74,115 +76,89 @@
 \item[-] Make peak flat between 10-17 (with value of 17).
 \item[-] Reduce nbPositiveHit=0 until 50\% Pos, 50\% Neg.
 \end{enumerate}
-\item[o] New studies today
+\item[o] Train in Balanced, evaluate in Test in Unbalanced.
+\item[o] Last time showed how peak at 17 gives best results.
  \begin{enumerate}
-\item[-] Last time Test was also Balanced. Now Test is Unbalanced.
-\item[-] With constraint of our output of -1 and 1: 
-\item[-] Try other output layer activation functions: tanh, squared non linear, soft sign.
-\item[-] Try other loss functions: squared hinge and hinge.
-\item[-] Try 120 epochs vs 50 epochs.
+\item[-] Many values at bin, and almost nothing at bins 1-9 (out of 21)
+\item[-] But problem that only a peak in 1-2 bins around bin 14.
 \end{enumerate}
-
+\item[o] New studies today:
+ \begin{enumerate}
+\item[-] Tried other model settings.
+\item[-] Also added a dropout(0.2) layer at the end of the hidden layers.
+\end{enumerate}
 \end{enumerate}
 \end{frame}
 \clearpage
 
-
-
-\begin{frame}{Balancing method 1/6}
+\begin{frame}{Model changes}
 \begin{enumerate}
-\item[o] Categories of nbPositiveHit from 0 to 20 denoted $\xi$.
-\item[o] Each category has $\Ni$ buckets, representing the weight $\wi$ of $\xi$.
-\item[o] The weighted average of nbPositiveHit is desired to be 10, so: \\
-$\frac{\wzero \cdot \xzero + \sum_{1}^{20} \wi \cdot \xi}{\wzero + \sum_{1}^{20} \wi}$ = 10
-\item[o] Solve for $\wzero$, \\
-$\wzero = \frac{ \sum_{1}^{20} \wi \cdot \xi}{10} - \sum_{1}^{20} \wi$
-\item[o] Reduce the number of buckets in nbPositiveHit=0 to $\wzero$.
-\end{enumerate}
-\includegraphics[width=0.49\textwidth]{\inputFolderMergedBalanced_balanced/plot_histo_2_NbBucket_vs_NbPositiveHit_Test.pdf}
-\includegraphics[width=0.49\textwidth]{\inputFolderMergedBalanced_balanced/plot_histo_2_NbBucket_vs_NbPositiveHit_normalized_Test.pdf}
-\end{frame}
-\clearpage
-
-\begin{frame}{Balancing method 2/6}
+\item[o] Naming convention of model description, e,g. \texttt{\detokenize{02_05_E_RH_A_0120}}.
 \begin{enumerate}
-\item[o] Positive and Negative hits are now balanced.
-\item[o] But we also want as flat as possible distribution to the right.
-\item[o] We flatten the peak, so that bins from 10 to N \\ have the nb of buckets as bin N.  
-\item[o] Then recalculate nb of buckets for bin 0, as in previous slide.
-\item[o] For example, for N=13, \\ where also N=0 gives about the same nb of buckets as N=13. 
+\item[-] 02 hidden layers
+\item[-] 05 x 20 nodes on the hidden layer. \\ Input layer has 3 x 20 nodes, output layer has 1 x 20 nodes.
+\item[-] E = elu activation function for all nodes on all the hidden layers. \\ Other options: R = relu.
+\item[-] RH = regular hinge loss function (power one). \\ Other options: SH = squared hinge loss function (power two).
+\item[-] A = no dropout layer at the end of hidden layers. \\ Option options: B = one dropout layer at the end of the hidden layers.
+\item[-] 0120 number of epochs, each with batch size of 50000. \\ Other options: 600, 1200. 
 \end{enumerate}
-\includegraphics[width=0.49\textwidth]{\inputFolderMergedBalanced_balanced13/plot_histo_2_NbBucket_vs_NbPositiveHit_Test.pdf}
-\includegraphics[width=0.49\textwidth]{\inputFolderMergedBalanced_balanced13/plot_histo_2_NbBucket_vs_NbPositiveHit_normalized_Test.pdf}
-\end{frame}
-\clearpage
-
-\begin{frame}{Balancing method 3/6, N=14 and N=15}
-\includegraphics[width=0.49\textwidth]{\inputFolderMergedBalanced_balanced14/plot_histo_2_NbBucket_vs_NbPositiveHit_Test.pdf}
-\includegraphics[width=0.49\textwidth]{\inputFolderMergedBalanced_balanced14/plot_histo_2_NbBucket_vs_NbPositiveHit_normalized_Test.pdf}\\
-\includegraphics[width=0.49\textwidth]{\inputFolderMergedBalanced_balanced15/plot_histo_2_NbBucket_vs_NbPositiveHit_Test.pdf}
-\includegraphics[width=0.49\textwidth]{\inputFolderMergedBalanced_balanced15/plot_histo_2_NbBucket_vs_NbPositiveHit_normalized_Test.pdf}
-\end{frame}
-\clearpage
-
-\begin{frame}{Balancing method 4/6, N=16 and N=17}
-\includegraphics[width=0.49\textwidth]{\inputFolderMergedBalanced_balanced16/plot_histo_2_NbBucket_vs_NbPositiveHit_Test.pdf}
-\includegraphics[width=0.49\textwidth]{\inputFolderMergedBalanced_balanced16/plot_histo_2_NbBucket_vs_NbPositiveHit_normalized_Test.pdf}\\
-\includegraphics[width=0.49\textwidth]{\inputFolderMergedBalanced_balanced17/plot_histo_2_NbBucket_vs_NbPositiveHit_Test.pdf}
-\includegraphics[width=0.49\textwidth]{\inputFolderMergedBalanced_balanced17/plot_histo_2_NbBucket_vs_NbPositiveHit_normalized_Test.pdf}
-\end{frame}
-\clearpage
-
-
-
-
-\begin{frame}{Balancing method 5/6, N=18 and N=19}
-\includegraphics[width=0.49\textwidth]{\inputFolderMergedBalanced_balanced18/plot_histo_2_NbBucket_vs_NbPositiveHit_Test.pdf}
-\includegraphics[width=0.49\textwidth]{\inputFolderMergedBalanced_balanced18/plot_histo_2_NbBucket_vs_NbPositiveHit_normalized_Test.pdf}\\
-\includegraphics[width=0.49\textwidth]{\inputFolderMergedBalanced_balanced19/plot_histo_2_NbBucket_vs_NbPositiveHit_Test.pdf}
-\includegraphics[width=0.49\textwidth]{\inputFolderMergedBalanced_balanced19/plot_histo_2_NbBucket_vs_NbPositiveHit_normalized_Test.pdf}
-\end{frame}
-\clearpage
-
-
-
-\begin{frame}{Balancing method 6/6, N=20, and Table for Train.}
-\includegraphics[width=0.49\textwidth]{\inputFolderMergedBalanced_balanced20/plot_histo_2_NbBucket_vs_NbPositiveHit_Test.pdf}
-\includegraphics[width=0.49\textwidth]{\inputFolderMergedBalanced_balanced20/plot_histo_2_NbBucket_vs_NbPositiveHit_normalized_Test.pdf}
-\begin{table}[ht]
-\centering
-\resizebox{\textwidth}{!}{\begin{tabular}{|l|l|l|l|l|l|}
-\hline
-Max bin of flat peak & nbBucket Total & nbBucket bin 0 & nbBucket peak & \% bin 0 & \% peak \\ \hline
-13 & 2021k & 362k & 324k & 17.9 &16.0 \\ \hline
-14 & 1510k &  296k & 213k & 19.6 & 14.1 \\ \hline
-15 & 0805k & 178k & 096k & 22.1 &11.9 \\ \hline
-16 & 0345k & 086k & 034k & 24.9 &10.0 \\ \hline
-17 & 0130k & 036k & 011k & 28.0 & 08.3 \\ \hline
-18 &0074k & 022k & 006k & 29.6& 07.7 \\ \hline
-19 & 0022k & 007k & 001k & 32.1& 06.5 \\ \hline
-20 & 0019k & 003k & 001k & 33.3 & 06.1\\ \hline 
-\hline
-\end{tabular}}
-\caption{Caption} 
-\end{table} 
+\item[o] Today they all have Tanh activation function on the output layer. \\ Squared non linear and soft sign were not that good.
+\item[o] Comparing best models from last week with the best models from this week.
+\end{enumerate}
 \end{frame}
 \clearpage
 
 \begin{frame}{Accuracy and Loss from training}
-\includegraphics[width=0.49\textwidth]{\inputFolderOverlay/plot_01_1_overlay_graph_accuracyBinary_Train.pdf}
-\includegraphics[width=0.49\textwidth]{\inputFolderOverlay/plot_01_1_overlay_graph_accuracyBinary_Test.pdf}\\
-\includegraphics[width=0.49\textwidth]{\inputFolderOverlay/plot_01_1_overlay_graph_loss_Train.pdf}
-\includegraphics[width=0.49\textwidth]{\inputFolderOverlay/plot_01_1_overlay_graph_loss_Test.pdf}
+\begin{enumerate}
+\item[o] For 120 epochs, Test shows unbalanced, for 1200 Test balanced.
+\end{enumerate}
+\includegraphics[width=0.45\textwidth]{\inputFolderOverlay/plot_01_1_overlay_graph_accuracyBinary_Train.pdf}
+\includegraphics[width=0.45\textwidth]{\inputFolderOverlay/plot_01_1_overlay_graph_loss_Train.pdf} \\
+\includegraphics[width=0.45\textwidth]{\inputFolderOverlay/plot_01_1_overlay_graph_accuracyBinary_Test.pdf}
+\includegraphics[width=0.45\textwidth]{\inputFolderOverlay/plot_01_1_overlay_graph_loss_Test.pdf}
 \end{frame}
 \clearpage
 
-\begin{frame}{Metrics for each VolumeID overlay balancing methods.}
+
+
+
+
+\begin{frame}{Output and output predicted 1D}
 \begin{enumerate}
-\item[o] If unbalanced, as seen before, precision and recall were zero, as it learned to predict all buckets with negative hits.
-\item[o] Now in all methods of balancing, precision and recall are not zero.
-\item[o] Best performance seems when the peak is most flat, so for 19 and 20. 
-\item[o] 19 and 20 have also very few buckets remaining, so fast to process.
+\item[o] Older ones have a sharp peak, the new ones are more flat. 
+\end{enumerate}
+\includegraphics[width=0.45\textwidth]{\inputFolderOverlay/plot_02_1_overlay_histo_OutputPositive_Train.pdf}
+\includegraphics[width=0.45\textwidth]{\inputFolderOverlay/plot_02_1_overlay_histo_PredictedOutputPositive_Train.pdf}\\
+\includegraphics[width=0.45\textwidth]{\inputFolderOverlay/plot_02_1_overlay_histo_OutputPositive_Test.pdf}
+\includegraphics[width=0.45\textwidth]{\inputFolderOverlay/plot_02_1_overlay_histo_PredictedOutputPositive_Test.pdf}
+\end{frame}
+\clearpage
+
+\begin{frame}{Output and output predicted 2D 1/2 - last week}
+\begin{enumerate}
+\item[o] No diagonal in either Train or Test. 
+\end{enumerate}
+\includegraphics[width=0.45\textwidth]{\inputFolderOverlay/plot_04_1_overlay_histo2D_OutputPositive_PredictedOutputPositive_02_05_E_RH_A_0120_Train.pdf}
+\includegraphics[width=0.45\textwidth]{\inputFolderOverlay/plot_04_1_overlay_histo2D_OutputPositive_PredictedOutputPositive_02_05_E_SH_A_0120_Train.pdf}\\
+\includegraphics[width=0.45\textwidth]{\inputFolderOverlay/plot_04_1_overlay_histo2D_OutputPositive_PredictedOutputPositive_02_05_E_RH_A_0120_Test.pdf}
+\includegraphics[width=0.45\textwidth]{\inputFolderOverlay/plot_04_1_overlay_histo2D_OutputPositive_PredictedOutputPositive_02_05_E_SH_A_0120_Test.pdf}\\
+\end{frame}
+\clearpage
+
+\begin{frame}{Output and output predicted 2D 2/2 - new models}
+\begin{enumerate}
+\item[o] In Train balanced, a diagonal is seen. In Test unbalanced it's harder.
+\end{enumerate}
+\includegraphics[width=0.45\textwidth]{\inputFolderOverlay/plot_04_1_overlay_histo2D_OutputPositive_PredictedOutputPositive_03_10_E_SH_B_1200_Train.pdf}
+\includegraphics[width=0.45\textwidth]{\inputFolderOverlay/plot_04_1_overlay_histo2D_OutputPositive_PredictedOutputPositive_03_10_R_RH_B_1200_Train.pdf}\\
+\includegraphics[width=0.45\textwidth]{\inputFolderOverlay/plot_04_1_overlay_histo2D_OutputPositive_PredictedOutputPositive_03_10_E_SH_B_1200_Test.pdf}
+\includegraphics[width=0.45\textwidth]{\inputFolderOverlay/plot_04_1_overlay_histo2D_OutputPositive_PredictedOutputPositive_03_10_R_RH_B_1200_Test.pdf}\\
+\end{frame}
+\clearpage
+
+\begin{frame}{Metrics for each VolumeID.}
+\begin{enumerate}
+\item[o] The new ones (bluish) have a clearly better Train Balance and only a slightly better Test Unbalanced than the old ones (reddish).
 \end{enumerate}
 \centering
 % table
@@ -196,18 +172,195 @@ $\frac{\TP+\TN}{\TP+\FP+\FN+\TN}$ & $\frac{\TP}{\TP+\FP}$  & $\frac{\TP}{\TP+\FN
 \end{tabular}
 \end{center}
 % plots
+\includegraphics[width=0.32\textwidth]{\inputFolderOverlay/plot_03_1_overlay_graph_Accuracy_VolumeID_Train.pdf}
+\includegraphics[width=0.32\textwidth]{\inputFolderOverlay/plot_03_1_overlay_graph_Precision_VolumeID_Train.pdf}
+\includegraphics[width=0.32\textwidth]{\inputFolderOverlay/plot_03_1_overlay_graph_Recall_VolumeID_Train.pdf}\\
+% plots
 \includegraphics[width=0.32\textwidth]{\inputFolderOverlay/plot_03_1_overlay_graph_Accuracy_VolumeID_Test.pdf}
 \includegraphics[width=0.32\textwidth]{\inputFolderOverlay/plot_03_1_overlay_graph_Precision_VolumeID_Test.pdf}
 \includegraphics[width=0.32\textwidth]{\inputFolderOverlay/plot_03_1_overlay_graph_Recall_VolumeID_Test.pdf}\\
 \end{frame}
 
-\begin{frame}{2D plots Balanced no flat peak}
-\includegraphics[width=0.49\textwidth]{\inputFolderMergedBalanced_NN/NN_5_Balanced_120_50000_histo_OutputPositive.pdf}
-\includegraphics[width=0.49\textwidth]{\inputFolderMergedBalanced_NN/NN_5_Balanced_120_50000_histo_PredictedOutputPositive.pdf}\\
-\includegraphics[width=0.49\textwidth]{\inputFolderMergedBalanced_NN/NN_5_Balanced_120_50000_histo_OutputPositive_vs_PredictedOutputPositive_Train.pdf}
-\includegraphics[width=0.49\textwidth]{\inputFolderMergedBalanced_NN/NN_5_Balanced_120_50000_histo_OutputPositive_vs_PredictedOutputPositive_Test.pdf}
+\begin{frame}{Conclusion}
+\begin{enumerate}
+\item[o] Improved model from last week.
+\item[o] In balanced dataset (Train and Test) a diagonal can be nicely seen.
+\item[o] In Test unbalanced it is harder to see, \\ but still values look relatively flat in 1D. 
+\item[o] Changes to the model for the best choice: \\ \texttt{\detokenize{02_05_E_SH_A_0120}} $\rightarrow$ \texttt{\detokenize{03_10_R_RH_B_1200}}.
+\begin{enumerate}
+\item[-] 02 $\rightarrow$ 03 hidden layers
+\item[-] 05 x 20 $\rightarrow$ 10 x 20 nodes on each hidden layer. \\ Input layer has 3 x 20 nodes, output layer has 1 x 20 nodes.
+\item[-] Elu $\rightarrow$ Relu activation function for all nodes on all the hidden layers. 
+\item[-] Squared Hinge $\rightarrow$ Regular Hinge as loss function.
+\item[-] Added one dropout layer (0.2) at the end of the hidden layers.
+\item[-] 120 $\rightarrow$ 1200 epochs, each with batch size of 50000.
+\item[-] Kept Tanh activation function on the output layer.
+\end{enumerate}
+\item[o] This model seems good enough.
+\item[o] Next step: add these results in the thesis. 
+\end{enumerate}
 \end{frame}
 \clearpage
+
+\end{document}
+
+\begin{frame}{2D plots TANH SH 50}
+\includegraphics[width=0.49\textwidth]{\inputFolderNN/NN_5_Balanced17_TANH_SH_50_50000_histo_OutputPositive.pdf}
+\includegraphics[width=0.49\textwidth]{\inputFolderNN/NN_5_Balanced17_TANH_SH_50_50000_histo_PredictedOutputPositive.pdf}\\
+\includegraphics[width=0.49\textwidth]{\inputFolderNN/NN_5_Balanced17_TANH_SH_50_50000_histo_OutputPositive_vs_PredictedOutputPositive_Train.pdf}
+\includegraphics[width=0.49\textwidth]{\inputFolderNN/NN_5_Balanced17_TANH_SH_50_50000_histo_OutputPositive_vs_PredictedOutputPositive_Test.pdf}
+\end{frame}
+\clearpage
+
+
+
+\begin{frame}{2D plots SQNL SH 50}
+\includegraphics[width=0.49\textwidth]{\inputFolderNN/NN_5_Balanced17_SQNL_SH_50_50000_histo_OutputPositive.pdf}
+\includegraphics[width=0.49\textwidth]{\inputFolderNN/NN_5_Balanced17_SQNL_SH_50_50000_histo_PredictedOutputPositive.pdf}\\
+\includegraphics[width=0.49\textwidth]{\inputFolderNN/NN_5_Balanced17_SQNL_SH_50_50000_histo_OutputPositive_vs_PredictedOutputPositive_Train.pdf}
+\includegraphics[width=0.49\textwidth]{\inputFolderNN/NN_5_Balanced17_SQNL_SH_50_50000_histo_OutputPositive_vs_PredictedOutputPositive_Test.pdf}
+\end{frame}
+\clearpage
+
+\begin{frame}{2D plots SOSI SH 50}
+\includegraphics[width=0.49\textwidth]{\inputFolderNN/NN_5_Balanced17_SOSI_SH_50_50000_histo_OutputPositive.pdf}
+\includegraphics[width=0.49\textwidth]{\inputFolderNN/NN_5_Balanced17_SOSI_SH_50_50000_histo_PredictedOutputPositive.pdf}\\
+\includegraphics[width=0.49\textwidth]{\inputFolderNN/NN_5_Balanced17_SOSI_SH_50_50000_histo_OutputPositive_vs_PredictedOutputPositive_Train.pdf}
+\includegraphics[width=0.49\textwidth]{\inputFolderNN/NN_5_Balanced17_SOSI_SH_50_50000_histo_OutputPositive_vs_PredictedOutputPositive_Test.pdf}
+\end{frame}
+\clearpage
+
+\begin{frame}{Study 2: varying number of epochs}
+\begin{enumerate}
+\item[o] Conclusions:
+\item[o] 120 vs 50 epochs.
+\item[o] Looking at 120 epochs it appeared that from 50 epochs it started to overtrain.
+\item[o] So ran again with 50 epochs. 
+\item[o] But results look a bit worse, including for Test. 
+\end{enumerate}
+\end{frame}
+\clearpage
+
+% intro slide
+\begin{frame}{Conclusion}
+\begin{enumerate}
+\item[o] 100 events. For each group of 10: 7 train, 3 test.  
+\item[o] If nbPositiveHit$<$10, set nbPositiveHit=0 and output made only of -1.
+\item[o] For Train used Balanced (130k), for Test use Unbalanced (3.2M).
+\item[o] Balancing Train in two steps, as shown last time.
+\begin{enumerate}
+\item[-] Make peak flat between 10-17 (with value of 17).
+\item[-] Reduce nbPositiveHit=0 until 50\% Pos, 50\% Neg.
+\end{enumerate}
+\item[o] New studies today
+ \begin{enumerate}
+\item[-] Last time Test was also Balanced. Now Test is Unbalanced.
+\item[-] With constraint of our output of -1 and 1: 
+\item[-] Very similar with various layer activation functions: tanh, squared non linear, soft sign.
+\item[-] Very similar with various loss functions: squared hinge and hinge.
+\item[-] Overtrain at 50 epochs maybe a false alarm? As 50 epochs slight worse than 120 epochs. Try 120 epochs vs 50 epochs.
+\end{enumerate}
+\end{enumerate}
+\end{frame}
+\clearpage
+
+
+
+
+
+\begin{frame}{Study 3: for 120 epochs, vary loss function}
+\begin{enumerate}
+\item[o] Squared hinge, Hinge. 
+\end{enumerate}
+\end{frame}
+\clearpage
+
+\begin{frame}{Accuracy and Loss from training}
+\includegraphics[width=0.49\textwidth]{\inputFolderOverlay_04/plot_01_1_overlay_graph_accuracyBinary_Train.pdf}
+\includegraphics[width=0.49\textwidth]{\inputFolderOverlay_04/plot_01_1_overlay_graph_accuracyBinary_Test.pdf}\\
+\includegraphics[width=0.49\textwidth]{\inputFolderOverlay_04/plot_01_1_overlay_graph_loss_Train.pdf}
+\includegraphics[width=0.49\textwidth]{\inputFolderOverlay_04/plot_01_1_overlay_graph_loss_Test.pdf}
+\end{frame}
+\clearpage
+
+\begin{frame}{Metrics for each VolumeID.}
+\begin{enumerate}
+\item[o] Squared hinge vs hinge quite similar. 
+\end{enumerate}
+\centering
+% table
+\begin{center}
+\begin{tabular}{ |c|c|c| } 
+\hline
+Accuracy & Precision & Recall \\ 
+\hline
+$\frac{\TP+\TN}{\TP+\FP+\FN+\TN}$ & $\frac{\TP}{\TP+\FP}$  & $\frac{\TP}{\TP+\FN}$ \\ 
+\hline
+\end{tabular}
+\end{center}
+% plots
+\includegraphics[width=0.32\textwidth]{\inputFolderOverlay_04/plot_03_1_overlay_graph_Accuracy_VolumeID_Train.pdf}
+\includegraphics[width=0.32\textwidth]{\inputFolderOverlay_04/plot_03_1_overlay_graph_Precision_VolumeID_Train.pdf}
+\includegraphics[width=0.32\textwidth]{\inputFolderOverlay_04/plot_03_1_overlay_graph_Recall_VolumeID_Train.pdf}\\
+% plots
+\includegraphics[width=0.32\textwidth]{\inputFolderOverlay_04/plot_03_1_overlay_graph_Accuracy_VolumeID_Test.pdf}
+\includegraphics[width=0.32\textwidth]{\inputFolderOverlay_04/plot_03_1_overlay_graph_Precision_VolumeID_Test.pdf}
+\includegraphics[width=0.32\textwidth]{\inputFolderOverlay_04/plot_03_1_overlay_graph_Recall_VolumeID_Test.pdf}\\
+\end{frame}
+
+\begin{frame}{2D plots TANH RH 120}
+\includegraphics[width=0.49\textwidth]{\inputFolderNN/NN_5_Balanced17_TANH_RH_120_50000_histo_OutputPositive.pdf}
+\includegraphics[width=0.49\textwidth]{\inputFolderNN/NN_5_Balanced17_TANH_RH_120_50000_histo_PredictedOutputPositive.pdf}\\
+\includegraphics[width=0.49\textwidth]{\inputFolderNN/NN_5_Balanced17_TANH_RH_120_50000_histo_OutputPositive_vs_PredictedOutputPositive_Train.pdf}
+\includegraphics[width=0.49\textwidth]{\inputFolderNN/NN_5_Balanced17_TANH_RH_120_50000_histo_OutputPositive_vs_PredictedOutputPositive_Test.pdf}
+\end{frame}
+\clearpage
+
+\begin{frame}{2D plots SQNL RH 120}
+\includegraphics[width=0.49\textwidth]{\inputFolderNN/NN_5_Balanced17_SQNL_RH_120_50000_histo_OutputPositive.pdf}
+\includegraphics[width=0.49\textwidth]{\inputFolderNN/NN_5_Balanced17_SQNL_RH_120_50000_histo_PredictedOutputPositive.pdf}\\
+\includegraphics[width=0.49\textwidth]{\inputFolderNN/NN_5_Balanced17_SQNL_RH_120_50000_histo_OutputPositive_vs_PredictedOutputPositive_Train.pdf}
+\includegraphics[width=0.49\textwidth]{\inputFolderNN/NN_5_Balanced17_SQNL_RH_120_50000_histo_OutputPositive_vs_PredictedOutputPositive_Test.pdf}
+\end{frame}
+\clearpage
+
+\begin{frame}{2D plots SOSI RH 120}
+\includegraphics[width=0.49\textwidth]{\inputFolderNN/NN_5_Balanced17_SOSI_RH_120_50000_histo_OutputPositive.pdf}
+\includegraphics[width=0.49\textwidth]{\inputFolderNN/NN_5_Balanced17_SOSI_RH_120_50000_histo_PredictedOutputPositive.pdf}\\
+\includegraphics[width=0.49\textwidth]{\inputFolderNN/NN_5_Balanced17_SOSI_RH_120_50000_histo_OutputPositive_vs_PredictedOutputPositive_Train.pdf}
+\includegraphics[width=0.49\textwidth]{\inputFolderNN/NN_5_Balanced17_SOSI_RH_120_50000_histo_OutputPositive_vs_PredictedOutputPositive_Test.pdf}
+\end{frame}
+\clearpage
+
+\begin{frame}{Study 3: for 120 epochs, vary loss function}
+\begin{enumerate}
+\item[o] Conclusions
+\item[o] Results are similar for squared hinge and hinge.
+\end{enumerate}
+\end{frame}
+\clearpage
+
+
+
+
+
+\end{document}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+\end{document}
 
 \begin{frame}{2D plots Balanced flat peak 10-13}
 \includegraphics[width=0.49\textwidth]{\inputFolderMergedBalanced_NN/NN_5_Balanced13_120_50000_histo_OutputPositive.pdf}
