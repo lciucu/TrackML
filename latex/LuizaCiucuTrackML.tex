@@ -20,7 +20,7 @@
 \includegraphics[height=2.1cm]{./physics_section_EN_q-eps-converted-to.pdf} 
 }
 
-\date{19 June 2020}
+\date{03 July 2020}
 
 \begin{document}
 
@@ -29,10 +29,10 @@
 %\texttt{\detokenize{
 
 % define input folder for our plots only once
-\newcommand\inputFolderMergedOld{../backup_01/output_new_ev_000_030}
-\newcommand\inputFolderOverlayOld{../backup_01/output_overlay_balanced_ev_000_030}
-\newcommand\inputFolderMerged{../output_new_ev_000_100}
-\newcommand\inputFolderOverlay{../output_overlay_balanced_ev_000_100}
+\newcommand\inputFolderMerge{../output_new_ev_000_100_min_10}
+\newcommand\inputFolderMergedBalanced{../output_new_ev_000_100_min_10_balanced17}
+\newcommand\inputFolderNN{../output_new_ev_000_100_min_10_NN_07}
+\newcommand\inputFolderOverlay{../output_overlay_balanced_ev_000_100_Min10_17}
 
 % add some useful definitions
 %\def\MeV{\ifmmode {\mathrm{\ Me\kern -0.1em V}}\else
@@ -50,191 +50,139 @@
 \def\TN{\ifmmode {\mathrm{TN}}\else
                    \textrm{TN}\fi}%
 
+\def\Ni{\ifmmode {\mathrm{N}_\mathrm{i}}\else
+                   \textrm{N}_{\textrm{i}}\fi}%
+\def\wi{\ifmmode {\mathrm{w}_\mathrm{i}}\else
+                   \textrm{w}_{\textrm{i}}\fi}%
+\def\xi{\ifmmode {\mathrm{x}_\mathrm{i}}\else
+                   \textrm{x}_{\textrm{i}}\fi}%
+\def\wzero{\ifmmode {\mathrm{w}_\mathrm{0}}\else
+                   \textrm{w}_{\textrm{0}}\fi}%
+\def\xzero{\ifmmode {\mathrm{x}_\mathrm{0}}\else
+                   \textrm{x}_{\textrm{0}}\fi}%
+                   
+
+
 % intro slide
 \begin{frame}{Introduction}
 \begin{enumerate}
-\item[o] Compare 3 methods to balance nb of positive and negative hits: 
+\item[o] 100 events. For each group of 10: 7 train, 3 test.  
+\item[o] If nbPositiveHit$<$10, set nbPositiveHit=0 and output made only of -1.
+\item[o] For Train used Balanced (130k), for Test use Unbalanced (3.2M).
+\item[o] Balancing Train in two steps, as shown last time.
 \begin{enumerate}
-\item[-] A: Unbalanced 30 events. Train 2.29M buckets. Test 0.95 buckets. 
-\item[-] B: Balanced 30 events. Train 1.39 M buckets. Test 0.61 buckets. 
-\item[-] Not trained: Unbalanced 100 events. Train 7.35 M buckets. Test 3.22. 
-\item[-] C: Balanced2 100 events. Train 2.21M buckets. Test 0.98 buckets. 
+\item[-] Make peak flat between 10-17 (with value of 17).
+\item[-] Reduce nbPositiveHit=0 until 50\% Pos, 50\% Neg.
 \end{enumerate}
-\item[o] A and C similar nb of buckets, so a fair comparison.
-\item[o] For each group of 10: 7 in train, 3 in test. 
-\item[o] A=Unbalanced: keep all buckets.
-\item[o] B=Balanced: remove buckets (from the left) so that bucket distribution is symmetric around 10 in NbPositiveHit per bucket.
-\item[o] C=Balanced2: similar to B, but cut the peak so that same number of buckets between 6-14 inclusive. \\ Also 0,1, 19, 20 are kept as they are. \\ But 2, 3, 4, 5, 15, 16, 17, 18 remain as in B. 
-\item[o] Used min 0, 4, 7 and 10 positive hits in the bucket; if less, consider all hits in the bucket to be negative, but use same balancing as above.
+\item[o] New studies today
+ \begin{enumerate}
+\item[-] Last time Test was also Balanced. Now Test is Unbalanced.
+\item[-] With constraint of our output of -1 and 1: 
+\item[-] Try other output layer activation functions: tanh, squared non linear, soft sign.
+\item[-] Try other loss functions: squared hinge and hinge.
+\item[-] Try 120 epochs vs 50 epochs.
 \end{enumerate}
+
+\end{enumerate}
+\end{frame}
+\clearpage
+
+
+
+\begin{frame}{Balancing method 1/6}
+\begin{enumerate}
+\item[o] Categories of nbPositiveHit from 0 to 20 denoted $\xi$.
+\item[o] Each category has $\Ni$ buckets, representing the weight $\wi$ of $\xi$.
+\item[o] The weighted average of nbPositiveHit is desired to be 10, so: \\
+$\frac{\wzero \cdot \xzero + \sum_{1}^{20} \wi \cdot \xi}{\wzero + \sum_{1}^{20} \wi}$ = 10
+\item[o] Solve for $\wzero$, \\
+$\wzero = \frac{ \sum_{1}^{20} \wi \cdot \xi}{10} - \sum_{1}^{20} \wi$
+\item[o] Reduce the number of buckets in nbPositiveHit=0 to $\wzero$.
+\end{enumerate}
+\includegraphics[width=0.49\textwidth]{\inputFolderMergedBalanced_balanced/plot_histo_2_NbBucket_vs_NbPositiveHit_Test.pdf}
+\includegraphics[width=0.49\textwidth]{\inputFolderMergedBalanced_balanced/plot_histo_2_NbBucket_vs_NbPositiveHit_normalized_Test.pdf}
+\end{frame}
+\clearpage
+
+\begin{frame}{Balancing method 2/6}
+\begin{enumerate}
+\item[o] Positive and Negative hits are now balanced.
+\item[o] But we also want as flat as possible distribution to the right.
+\item[o] We flatten the peak, so that bins from 10 to N \\ have the nb of buckets as bin N.  
+\item[o] Then recalculate nb of buckets for bin 0, as in previous slide.
+\item[o] For example, for N=13, \\ where also N=0 gives about the same nb of buckets as N=13. 
+\end{enumerate}
+\includegraphics[width=0.49\textwidth]{\inputFolderMergedBalanced_balanced13/plot_histo_2_NbBucket_vs_NbPositiveHit_Test.pdf}
+\includegraphics[width=0.49\textwidth]{\inputFolderMergedBalanced_balanced13/plot_histo_2_NbBucket_vs_NbPositiveHit_normalized_Test.pdf}
+\end{frame}
+\clearpage
+
+\begin{frame}{Balancing method 3/6, N=14 and N=15}
+\includegraphics[width=0.49\textwidth]{\inputFolderMergedBalanced_balanced14/plot_histo_2_NbBucket_vs_NbPositiveHit_Test.pdf}
+\includegraphics[width=0.49\textwidth]{\inputFolderMergedBalanced_balanced14/plot_histo_2_NbBucket_vs_NbPositiveHit_normalized_Test.pdf}\\
+\includegraphics[width=0.49\textwidth]{\inputFolderMergedBalanced_balanced15/plot_histo_2_NbBucket_vs_NbPositiveHit_Test.pdf}
+\includegraphics[width=0.49\textwidth]{\inputFolderMergedBalanced_balanced15/plot_histo_2_NbBucket_vs_NbPositiveHit_normalized_Test.pdf}
+\end{frame}
+\clearpage
+
+\begin{frame}{Balancing method 4/6, N=16 and N=17}
+\includegraphics[width=0.49\textwidth]{\inputFolderMergedBalanced_balanced16/plot_histo_2_NbBucket_vs_NbPositiveHit_Test.pdf}
+\includegraphics[width=0.49\textwidth]{\inputFolderMergedBalanced_balanced16/plot_histo_2_NbBucket_vs_NbPositiveHit_normalized_Test.pdf}\\
+\includegraphics[width=0.49\textwidth]{\inputFolderMergedBalanced_balanced17/plot_histo_2_NbBucket_vs_NbPositiveHit_Test.pdf}
+\includegraphics[width=0.49\textwidth]{\inputFolderMergedBalanced_balanced17/plot_histo_2_NbBucket_vs_NbPositiveHit_normalized_Test.pdf}
 \end{frame}
 \clearpage
 
 
 
-\begin{frame}{Introduction 2}
-\begin{enumerate}
-\item[o] Reminder how a bucket is created:
-\begin{enumerate}
-\item[-] Loop over events, and for each event build annoy index and then:
-\item[-] Loop over hits and for each hit build a bucket using annoy and 20 nearest neighbours by direction
-\item[-] Loop over hits in the bucket, find their particleID; find particleID with most hits in the bucket; denote it majority particle.
-\item[-] Loop over hits in the bucket again, if belongs to the majority particle assign output +1, else -1.
-\end{enumerate}
-\end{enumerate}
+
+\begin{frame}{Balancing method 5/6, N=18 and N=19}
+\includegraphics[width=0.49\textwidth]{\inputFolderMergedBalanced_balanced18/plot_histo_2_NbBucket_vs_NbPositiveHit_Test.pdf}
+\includegraphics[width=0.49\textwidth]{\inputFolderMergedBalanced_balanced18/plot_histo_2_NbBucket_vs_NbPositiveHit_normalized_Test.pdf}\\
+\includegraphics[width=0.49\textwidth]{\inputFolderMergedBalanced_balanced19/plot_histo_2_NbBucket_vs_NbPositiveHit_Test.pdf}
+\includegraphics[width=0.49\textwidth]{\inputFolderMergedBalanced_balanced19/plot_histo_2_NbBucket_vs_NbPositiveHit_normalized_Test.pdf}
 \end{frame}
 \clearpage
 
-\begin{frame}{Bucket balancing procedure 1/4}
-\begin{enumerate}
-\item[o] Remove buckets so that bucket distribution is symmetric around 10 in NbPositiveHit per bucket (with default weight of 1.0): Train and Test.
-\item[o] Input: \texttt{\detokenize{nparray_output}} (Nx20)
-\item[o] Output: \texttt{\detokenize{nparray_outputBalanced}} (Nx20)
-\item[o] Step 1: count buckets for each category of nbPositiveHit
-\begin{enumerate}
-\item[-] output: \texttt{\detokenize{dict_nbPositiveHit_counterBucket}}
-\item[-] process: loop over buckets, for each bucket count positive hits into nbPositiveHit, increase counter in dicti at that key of nbPositiveHit.
-\end{enumerate}
-\item[o] The result is shown below for Train. Note not balanced around 10. 
-\end{enumerate}
+
+
+\begin{frame}{Balancing method 6/6, N=20, and Table for Train.}
+\includegraphics[width=0.49\textwidth]{\inputFolderMergedBalanced_balanced20/plot_histo_2_NbBucket_vs_NbPositiveHit_Test.pdf}
+\includegraphics[width=0.49\textwidth]{\inputFolderMergedBalanced_balanced20/plot_histo_2_NbBucket_vs_NbPositiveHit_normalized_Test.pdf}
+\begin{table}[ht]
 \centering
-% plots
-\includegraphics[width=0.5\textheight]{\inputFolderMergedOld/CounterUnbalanced.png}
+\resizebox{\textwidth}{!}{\begin{tabular}{|l|l|l|l|l|l|}
+\hline
+Max bin of flat peak & nbBucket Total & nbBucket bin 0 & nbBucket peak & \% bin 0 & \% peak \\ \hline
+13 & 2021k & 362k & 324k & 17.9 &16.0 \\ \hline
+14 & 1510k &  296k & 213k & 19.6 & 14.1 \\ \hline
+15 & 0805k & 178k & 096k & 22.1 &11.9 \\ \hline
+16 & 0345k & 086k & 034k & 24.9 &10.0 \\ \hline
+17 & 0130k & 036k & 011k & 28.0 & 08.3 \\ \hline
+18 &0074k & 022k & 006k & 29.6& 07.7 \\ \hline
+19 & 0022k & 007k & 001k & 32.1& 06.5 \\ \hline
+20 & 0019k & 003k & 001k & 33.3 & 06.1\\ \hline 
+\hline
+\end{tabular}}
+\caption{Caption} 
+\end{table} 
 \end{frame}
+\clearpage
 
-\begin{frame}{Bucket balancing procedure 2/4}
-\begin{enumerate}
-\item[o] Step 2: from this (unbalanced) dict calculate desired balanced dict. 
-\begin{enumerate}
-\item[-] input: \texttt{\detokenize{dict_nbPositiveHit_counterBucket}}
-\item[-] output: \texttt{\detokenize{dict_nbPositiveHit_counterBucket_Balanced}}
-\item[-] process: loop over i from the first half of nbPositiveHit (from 0 to 10)
-\item[-] nbLeft=\texttt{\detokenize{dict_nbPositiveHit_counterBucket[i]}}
-\item[-] nbRight=\texttt{\detokenize{dict_nbPositiveHit_counterBucket[20-i]}}
-\item[-] Find nbMin from nbLeft and nbRight
-\item[-] Set in the new balanced dictionary both values ot the nbMin
-\item[-] \texttt{\detokenize{dict_nbPositiveHit_counterBucke_Balancedt[i]=nbMin}}
-\item[-]\texttt{\detokenize{dict_nbPositiveHit_counterBucke_Balancedt[20-i]=nbMin}}
-\end{enumerate}
-\item[o] The result is shown below for Train. Note it is balanced around 10. 
-\item[o] Right usually smaller, so remains the same and remove from left.
-\item[o] nbPositiveHit 0 and 1 have counts of 0, $\rightarrow$ set 19 and 20 to zero.
-\end{enumerate}
-\centering
-% plots
-\includegraphics[width=0.32\textheight]{\inputFolderMergedOld/CounterUnbalanced.png}
+\begin{frame}{Accuracy and Loss from training}
+\includegraphics[width=0.49\textwidth]{\inputFolderOverlay/plot_01_1_overlay_graph_accuracyBinary_Train.pdf}
+\includegraphics[width=0.49\textwidth]{\inputFolderOverlay/plot_01_1_overlay_graph_accuracyBinary_Test.pdf}\\
+\includegraphics[width=0.49\textwidth]{\inputFolderOverlay/plot_01_1_overlay_graph_loss_Train.pdf}
+\includegraphics[width=0.49\textwidth]{\inputFolderOverlay/plot_01_1_overlay_graph_loss_Test.pdf}
 \end{frame}
+\clearpage
 
-\begin{frame}{Bucket balancing procedure 3/4}
+\begin{frame}{Metrics for each VolumeID overlay balancing methods.}
 \begin{enumerate}
-\item[o] Step 3: use desired balanced dict to obtain balanced output.
-\begin{enumerate}
-\item[-] input: \texttt{\detokenize{dict_nbPositiveHit_counterBucket_Balanced}}
-\item[-] input: \texttt{\detokenize{nparray_output}} (Nx20)
-\item[-] output: \texttt{\detokenize{nparray_outputBalanced}} (Nx20)
-\item[-] process: loop over buckets from \texttt{\detokenize{nparray_output}}:
-\item[-] find nbPositiveHit for the bucket
-\item[-] from nbPositiveHit find desired number of bucket in this category
-\item[-] count the current number of buckets in this category
-\item[-] if current counter $\le$ desired number, append to a list
-\item[-] else (do nothing, so skip it)
-\item[-] .
-\item[-] after for loop convert list to \texttt{\detokenize{nparray_outputBalanced}}
-\item[-] as in step 1, calculate dictionary of counterBucket for each category
-\item[-] by printing verify it is the same as the one desired (confirmed)
-\item[-] next overlay histograms for nbPositiveHit in Unbalanced and Balanced
-\item[-] as expected, now it is balanced, the right side is the same in both cases, and we removed buckets from the left
-\item[-] But we set 19 and 20 to zero, to keep as 0 and 1. Though 0 will always have no buckets. But otherwise makes the symmetry harder.
-\end{enumerate}
-\end{enumerate}
-\end{frame}
-
-
-
-\begin{frame}{Bucket balancing method 2}
-\begin{enumerate}
-\item[o] Similar to Balanced from before (above), but with some changes.
-\item[o] Cut the peak so that same number of buckets between 6-14 inclusive.
-\item[o] Also 0,1, 19, 20 are kept as they are. 
-\begin{enumerate}
-\item[-] No buckets with nbPositiveHit=0, so it is unfair to set nbPositiveHit=20 to zero as well.
-\item[-] Only 3 nbPositiveHit=3, so it is unfair to set nbPositiveHit=19 to 3.
-\end{enumerate}
-\item[o] But 2, 3, 4, 5, 15, 16, 17, 18 remain as in B. 
-\end{enumerate}
-\centering
-% plots
-\includegraphics[height=0.4\textheight]{\inputFolderMerged/Balanced2.png}
-\end{frame}
-
-
-
-\begin{frame}{Histogram NbBuckets vs NbPositiveHit in a bucket.}
-\begin{enumerate}
-\item[o] 30 events. \textcolor{red}{Unbalanced} (\textcolor{blue}{Balanced})  \textcolor{red}{are not} (\textcolor{blue}{are}) symmetric around 10. 
-\end{enumerate}
-\centering
-% plots
-\includegraphics[width=0.48\textwidth]{\inputFolderMergedOld/plot_histo_2_NbBucket_vs_NbPositiveHit_Train.pdf}
-\includegraphics[width=0.48\textwidth]{\inputFolderMergedOld/plot_histo_2_NbBucket_vs_NbPositiveHit_Test.pdf}\\
-\includegraphics[width=0.48\textwidth]{\inputFolderMergedOld/plot_histo_2_NbBucket_vs_NbPositiveHit_normalized_Train.pdf}
-\includegraphics[width=0.48\textwidth]{\inputFolderMergedOld/plot_histo_2_NbBucket_vs_NbPositiveHit_normalized_Test.pdf}\\
-\end{frame}
-
-\begin{frame}{Histogram NbBuckets vs NbPositiveHit in a bucket.}
-\begin{enumerate}
-\item[o] 100 events. \textcolor{red}{Unbalanced} vs \textcolor{blue}{Balanced2}.
-\end{enumerate}
-\centering
-% plots
-\includegraphics[width=0.48\textwidth]{\inputFolderMerged/plot_histo_2_NbBucket_vs_NbPositiveHit_Train.pdf}
-\includegraphics[width=0.48\textwidth]{\inputFolderMerged/plot_histo_2_NbBucket_vs_NbPositiveHit_Test.pdf}\\
-\includegraphics[width=0.48\textwidth]{\inputFolderMerged/plot_histo_2_NbBucket_vs_NbPositiveHit_normalized_Train.pdf}
-\includegraphics[width=0.48\textwidth]{\inputFolderMerged/plot_histo_2_NbBucket_vs_NbPositiveHit_normalized_Test.pdf}\\
-\end{frame}
-
-
-
-%\begin{frame}{Count buckets in each NbPositiveHit category.}
-%\begin{enumerate}
-%\item[o] Balanced around 10 NbPositiveHit via bucket removal.
-%\item[o] 0 and 1 no buckets $\rightarrow$ 19 and 20 are balanced to no buckets (ignored). 
-%\end{enumerate}
-%\centering
-% plots
-%\includegraphics[width=0.8\textheight]{\inputFolderMergedOld/Balanced_30_buckets.png}
-%\end{frame}
-
-
-
-\begin{frame}{OutputPositive and PredictedOutputPositive 1/2}
-\begin{enumerate}
-\item[o] Min00 (left) and Min04 (right)
-\end{enumerate}
-\centering
-% plots
-\includegraphics[width=0.43\textwidth]{\inputFolderOverlay_Min00/plot_02_1_overlay_histo_OutputPositive_Test.pdf}
-\includegraphics[width=0.43\textwidth]{\inputFolderOverlay_Min04/plot_02_1_overlay_histo_OutputPositive_Test.pdf}\\
-\includegraphics[width=0.43\textwidth]{\inputFolderOverlay_Min00/plot_02_1_overlay_histo_PredictedOutputPositive_Test.pdf}
-\includegraphics[width=0.43\textwidth]{\inputFolderOverlay_Min04/plot_02_1_overlay_histo_PredictedOutputPositive_Test.pdf}\\
-\end{frame}
-
-\begin{frame}{OutputPositive and PredictedOutputPositive 2/2}
-\begin{enumerate}
-\item[o] Min07 (left) and Min10 (right).
-\item[o] Min10 and method Unbalanced predicts all hits to be negative.
-\end{enumerate}
-\centering
-% plots
-\includegraphics[width=0.43\textwidth]{\inputFolderOverlay_Min07/plot_02_1_overlay_histo_OutputPositive_Test.pdf}
-\includegraphics[width=0.43\textwidth]{\inputFolderOverlay_Min10/plot_02_1_overlay_histo_OutputPositive_Test.pdf}\\
-\includegraphics[width=0.43\textwidth]{\inputFolderOverlay_Min07/plot_02_1_overlay_histo_PredictedOutputPositive_Test.pdf}
-\includegraphics[width=0.43\textwidth]{\inputFolderOverlay_Min10/plot_02_1_overlay_histo_PredictedOutputPositive_Test.pdf}\\
-\end{frame}
-
-\begin{frame}{Metrics for each VolumeID overlay two methods 1/2.}
-\begin{enumerate}
-\item[o] Min00 and Min04 very similar. 
+\item[o] If unbalanced, as seen before, precision and recall were zero, as it learned to predict all buckets with negative hits.
+\item[o] Now in all methods of balancing, precision and recall are not zero.
+\item[o] Best performance seems when the peak is most flat, so for 19 and 20. 
+\item[o] 19 and 20 have also very few buckets remaining, so fast to process.
 \end{enumerate}
 \centering
 % table
@@ -248,117 +196,94 @@ $\frac{\TP+\TN}{\TP+\FP+\FN+\TN}$ & $\frac{\TP}{\TP+\FP}$  & $\frac{\TP}{\TP+\FN
 \end{tabular}
 \end{center}
 % plots
-\includegraphics[width=0.32\textwidth]{\inputFolderOverlay_Min00/plot_03_1_overlay_graph_Accuracy_VolumeID_Test.pdf}
-\includegraphics[width=0.32\textwidth]{\inputFolderOverlay_Min00/plot_03_1_overlay_graph_Precision_VolumeID_Test.pdf}
-\includegraphics[width=0.32\textwidth]{\inputFolderOverlay_Min00/plot_03_1_overlay_graph_Recall_VolumeID_Test.pdf}\\
-\includegraphics[width=0.32\textwidth]{\inputFolderOverlay_Min04/plot_03_1_overlay_graph_Accuracy_VolumeID_Test.pdf}
-\includegraphics[width=0.32\textwidth]{\inputFolderOverlay_Min04/plot_03_1_overlay_graph_Precision_VolumeID_Test.pdf}
-\includegraphics[width=0.32\textwidth]{\inputFolderOverlay_Min04/plot_03_1_overlay_graph_Recall_VolumeID_Test.pdf}\\
+\includegraphics[width=0.32\textwidth]{\inputFolderOverlay/plot_03_1_overlay_graph_Accuracy_VolumeID_Test.pdf}
+\includegraphics[width=0.32\textwidth]{\inputFolderOverlay/plot_03_1_overlay_graph_Precision_VolumeID_Test.pdf}
+\includegraphics[width=0.32\textwidth]{\inputFolderOverlay/plot_03_1_overlay_graph_Recall_VolumeID_Test.pdf}\\
 \end{frame}
 
-\begin{frame}{Metrics for each VolumeID overlay two methods 2/2.}
-\begin{enumerate}
-\item[o] \item[o] Min10 learns all hits to be negative, so precision and recall at zero.
-\end{enumerate}
-\centering
-% table
-\begin{center}
-\begin{tabular}{ |c|c|c| } 
-\hline
-Accuracy & Precision & Recall \\ 
-\hline
-$\frac{\TP+\TN}{\TP+\FP+\FN+\TN}$ & $\frac{\TP}{\TP+\FP}$  & $\frac{\TP}{\TP+\FN}$ \\ 
-\hline
-\end{tabular}
-\end{center}
-% plots
-\includegraphics[width=0.32\textwidth]{\inputFolderOverlay_Min07/plot_03_1_overlay_graph_Accuracy_VolumeID_Test.pdf}
-\includegraphics[width=0.32\textwidth]{\inputFolderOverlay_Min07/plot_03_1_overlay_graph_Precision_VolumeID_Test.pdf}
-\includegraphics[width=0.32\textwidth]{\inputFolderOverlay_Min07/plot_03_1_overlay_graph_Recall_VolumeID_Test.pdf}\\
-\includegraphics[width=0.32\textwidth]{\inputFolderOverlay_Min10/plot_03_1_overlay_graph_Accuracy_VolumeID_Test.pdf}
-\includegraphics[width=0.32\textwidth]{\inputFolderOverlay_Min10/plot_03_1_overlay_graph_Precision_VolumeID_Test.pdf}
-\includegraphics[width=0.32\textwidth]{\inputFolderOverlay_Min10/plot_03_1_overlay_graph_Recall_VolumeID_Test.pdf}\\
+\begin{frame}{2D plots Balanced no flat peak}
+\includegraphics[width=0.49\textwidth]{\inputFolderMergedBalanced_NN/NN_5_Balanced_120_50000_histo_OutputPositive.pdf}
+\includegraphics[width=0.49\textwidth]{\inputFolderMergedBalanced_NN/NN_5_Balanced_120_50000_histo_PredictedOutputPositive.pdf}\\
+\includegraphics[width=0.49\textwidth]{\inputFolderMergedBalanced_NN/NN_5_Balanced_120_50000_histo_OutputPositive_vs_PredictedOutputPositive_Train.pdf}
+\includegraphics[width=0.49\textwidth]{\inputFolderMergedBalanced_NN/NN_5_Balanced_120_50000_histo_OutputPositive_vs_PredictedOutputPositive_Test.pdf}
 \end{frame}
+\clearpage
 
-
-
-
-\begin{frame}{Metrics for each VolumeID with min value used.}
-\begin{enumerate}
-\item[o] Min00 and Min04 very similar. 
-\item[o] Min10 learns all hits to be negative, so precision and recall at zero.
-\end{enumerate}
-\centering
-% plots
-\includegraphics[width=0.28\textwidth]{\inputFolderOverlayOld_Unbalanced/plot_03_1_overlay_graph_Accuracy_VolumeID_Test.pdf}
-\includegraphics[width=0.28\textwidth]{\inputFolderOverlayOld_Unbalanced/plot_03_1_overlay_graph_Precision_VolumeID_Test.pdf}
-\includegraphics[width=0.28\textwidth]{\inputFolderOverlayOld_Unbalanced/plot_03_1_overlay_graph_Recall_VolumeID_Test.pdf}\\
-\includegraphics[width=0.28\textwidth]{\inputFolderOverlayOld_Balanced/plot_03_1_overlay_graph_Accuracy_VolumeID_Test.pdf}
-\includegraphics[width=0.28\textwidth]{\inputFolderOverlayOld_Balanced/plot_03_1_overlay_graph_Precision_VolumeID_Test.pdf}
-\includegraphics[width=0.28\textwidth]{\inputFolderOverlayOld_Balanced/plot_03_1_overlay_graph_Recall_VolumeID_Test.pdf}\\
-\includegraphics[width=0.28\textwidth]{\inputFolderOverlay_Balanced/plot_03_1_overlay_graph_Accuracy_VolumeID_Test.pdf}
-\includegraphics[width=0.28\textwidth]{\inputFolderOverlay_Balanced/plot_03_1_overlay_graph_Precision_VolumeID_Test.pdf}
-\includegraphics[width=0.28\textwidth]{\inputFolderOverlay_Balanced/plot_03_1_overlay_graph_Recall_VolumeID_Test.pdf}\\
+\begin{frame}{2D plots Balanced flat peak 10-13}
+\includegraphics[width=0.49\textwidth]{\inputFolderMergedBalanced_NN/NN_5_Balanced13_120_50000_histo_OutputPositive.pdf}
+\includegraphics[width=0.49\textwidth]{\inputFolderMergedBalanced_NN/NN_5_Balanced13_120_50000_histo_PredictedOutputPositive.pdf}\\
+\includegraphics[width=0.49\textwidth]{\inputFolderMergedBalanced_NN/NN_5_Balanced13_120_50000_histo_OutputPositive_vs_PredictedOutputPositive_Train.pdf}
+\includegraphics[width=0.49\textwidth]{\inputFolderMergedBalanced_NN/NN_5_Balanced13_120_50000_histo_OutputPositive_vs_PredictedOutputPositive_Test.pdf}
 \end{frame}
+\clearpage
 
-
-
-\begin{frame}{Conclusion. Future plans.}
-\begin{enumerate}
-\item[o] Conclusions:
-  \begin{enumerate}
-\item[-] Compared 3 methods: Unbalanced vs Balanced vs Balanced2.
-\item[-] Balanced: remove buckets such that number of buckets with a given nbPositiveHit is symmetric around 10.
-\item[-] Balanced2: Same as Balanced, but reduce peak to have a flatter distribution (same values between 6-14), keep also 19 and 20 to non-zero.
-\item[-] Min00 and Min04 are very similar.
-\item[-] Min07 in between Min04 and Min10.
-\item[-] Overall, balancing buckets improve performance.
-\item[-]  \textbf{Could choose 100 events, Balanced2, with Min04.}
-\end{enumerate}
-\item[o] Future plans:
-\begin{enumerate}
-\item[-] Balance buckets in the $\eta$ of the majority-particle.
-\item[-] Write master thesis.
-\end{enumerate}
-\end{enumerate}
+\begin{frame}{2D plots Balanced flat peak 10-14}
+\includegraphics[width=0.49\textwidth]{\inputFolderMergedBalanced_NN/NN_5_Balanced14_120_50000_histo_OutputPositive.pdf}
+\includegraphics[width=0.49\textwidth]{\inputFolderMergedBalanced_NN/NN_5_Balanced14_120_50000_histo_PredictedOutputPositive.pdf}\\
+\includegraphics[width=0.49\textwidth]{\inputFolderMergedBalanced_NN/NN_5_Balanced14_120_50000_histo_OutputPositive_vs_PredictedOutputPositive_Train.pdf}
+\includegraphics[width=0.49\textwidth]{\inputFolderMergedBalanced_NN/NN_5_Balanced14_120_50000_histo_OutputPositive_vs_PredictedOutputPositive_Test.pdf}
 \end{frame}
+\clearpage
 
-\end{document}
-
-\begin{frame}{Conclusion. Future plans.}
-\begin{enumerate}
-\item[o] Conclusions:
-\begin{enumerate}
-\item[-] Compared two methods: Unbalanced vs Balanced.
-\item[-]
-\item[-]
-\end{enumerate}
-\item[o] Future plans:
-\begin{enumerate}
-\item[-]
-\item[-]
-\item[-]
-\end{enumerate}
-\end{enumerate}
+\begin{frame}{2D plots Balanced flat peak 10-15}
+\includegraphics[width=0.49\textwidth]{\inputFolderMergedBalanced_NN/NN_5_Balanced15_120_50000_histo_OutputPositive.pdf}
+\includegraphics[width=0.49\textwidth]{\inputFolderMergedBalanced_NN/NN_5_Balanced15_120_50000_histo_PredictedOutputPositive.pdf}\\
+\includegraphics[width=0.49\textwidth]{\inputFolderMergedBalanced_NN/NN_5_Balanced15_120_50000_histo_OutputPositive_vs_PredictedOutputPositive_Train.pdf}
+\includegraphics[width=0.49\textwidth]{\inputFolderMergedBalanced_NN/NN_5_Balanced15_120_50000_histo_OutputPositive_vs_PredictedOutputPositive_Test.pdf}
 \end{frame}
+\clearpage
 
-\end{document}
+\begin{frame}{2D plots Balanced flat peak 10-16}
+\includegraphics[width=0.49\textwidth]{\inputFolderMergedBalanced_NN/NN_5_Balanced16_120_50000_histo_OutputPositive.pdf}
+\includegraphics[width=0.49\textwidth]{\inputFolderMergedBalanced_NN/NN_5_Balanced16_120_50000_histo_PredictedOutputPositive.pdf}\\
+\includegraphics[width=0.49\textwidth]{\inputFolderMergedBalanced_NN/NN_5_Balanced16_120_50000_histo_OutputPositive_vs_PredictedOutputPositive_Train.pdf}
+\includegraphics[width=0.49\textwidth]{\inputFolderMergedBalanced_NN/NN_5_Balanced16_120_50000_histo_OutputPositive_vs_PredictedOutputPositive_Test.pdf}
+\end{frame}
+\clearpage
 
-% intro slide
-\begin{frame}{Introduction}
+\begin{frame}{2D plots Balanced flat peak 10-17}
+\includegraphics[width=0.49\textwidth]{\inputFolderMergedBalanced_NN/NN_5_Balanced17_120_50000_histo_OutputPositive.pdf}
+\includegraphics[width=0.49\textwidth]{\inputFolderMergedBalanced_NN/NN_5_Balanced17_120_50000_histo_PredictedOutputPositive.pdf}\\
+\includegraphics[width=0.49\textwidth]{\inputFolderMergedBalanced_NN/NN_5_Balanced17_120_50000_histo_OutputPositive_vs_PredictedOutputPositive_Train.pdf}
+\includegraphics[width=0.49\textwidth]{\inputFolderMergedBalanced_NN/NN_5_Balanced17_120_50000_histo_OutputPositive_vs_PredictedOutputPositive_Test.pdf}
+\end{frame}
+\clearpage
+
+\begin{frame}{2D plots Balanced flat peak 10-18}
+\includegraphics[width=0.49\textwidth]{\inputFolderMergedBalanced_NN/NN_5_Balanced18_120_50000_histo_OutputPositive.pdf}
+\includegraphics[width=0.49\textwidth]{\inputFolderMergedBalanced_NN/NN_5_Balanced18_120_50000_histo_PredictedOutputPositive.pdf}\\
+\includegraphics[width=0.49\textwidth]{\inputFolderMergedBalanced_NN/NN_5_Balanced18_120_50000_histo_OutputPositive_vs_PredictedOutputPositive_Train.pdf}
+\includegraphics[width=0.49\textwidth]{\inputFolderMergedBalanced_NN/NN_5_Balanced18_120_50000_histo_OutputPositive_vs_PredictedOutputPositive_Test.pdf}
+\end{frame}
+\clearpage
+
+\begin{frame}{2D plots Balanced flat peak 10-19}
+\includegraphics[width=0.49\textwidth]{\inputFolderMergedBalanced_NN/NN_5_Balanced19_120_50000_histo_OutputPositive.pdf}
+\includegraphics[width=0.49\textwidth]{\inputFolderMergedBalanced_NN/NN_5_Balanced19_120_50000_histo_PredictedOutputPositive.pdf}\\
+\includegraphics[width=0.49\textwidth]{\inputFolderMergedBalanced_NN/NN_5_Balanced19_120_50000_histo_OutputPositive_vs_PredictedOutputPositive_Train.pdf}
+\includegraphics[width=0.49\textwidth]{\inputFolderMergedBalanced_NN/NN_5_Balanced19_120_50000_histo_OutputPositive_vs_PredictedOutputPositive_Test.pdf}
+\end{frame}
+\clearpage
+
+\begin{frame}{2D plots Balanced flat peak 10-20}
+\includegraphics[width=0.49\textwidth]{\inputFolderMergedBalanced_NN/NN_5_Balanced20_120_50000_histo_OutputPositive.pdf}
+\includegraphics[width=0.49\textwidth]{\inputFolderMergedBalanced_NN/NN_5_Balanced20_120_50000_histo_PredictedOutputPositive.pdf}\\
+\includegraphics[width=0.49\textwidth]{\inputFolderMergedBalanced_NN/NN_5_Balanced20_120_50000_histo_OutputPositive_vs_PredictedOutputPositive_Train.pdf}
+\includegraphics[width=0.49\textwidth]{\inputFolderMergedBalanced_NN/NN_5_Balanced20_120_50000_histo_OutputPositive_vs_PredictedOutputPositive_Test.pdf}
+\end{frame}
+\clearpage
+
+\begin{frame}{Conclusion}
 \begin{enumerate}
-\item[o] Compare two methods to balance the number of positive and negative hits : unbalanced (A) and balanced (B).
-\item[o] Used 30 events. Each group of 10: 7 in train, 3 in test. 
-\item[o] Unbalanced (A): keep all buckets (with default weight of 1.0).
-\item[o] Balanced (B): remove buckets so that bucket distribution is symmetric around 10 in NbPositiveHit per bucket (with default weight of 1.0).
-\item[o] Used min 0, 4, 7 and 10 positive hits in the bucket; if less, consider all hits in the bucket to be negative, but use same reweighting as above.
-\item[o] How a bucket is created:
-\begin{enumerate}
-\item[-] Loop over events, and for each event build annoy index and then:
-\item[-] Loop over hits and for each hit build a bucket using annoy and 20 nearest neighbours by direction
-\item[-] Loop over hits in the bucket, find their particleID; find particleID with most hits in the bucket; denote it majority particle.
-\item[-] Loop over hits in the bucket again, if belongs to the majority particle assign output +1, else -1.
-\end{enumerate}
+\item[o] 100 events, 70 in train, 30 in test.
+\item[o] If nbPositiveHit$<$10, set nbPositiveHit=0 and output made only of -1.
+\item[o] Balanced nb positive and negative hits by reducing the number of buckets at bin 0, with no flat peak or with various lengths of flat peak.
+\item[o] Best accuracy, precision and recall for 19-20.
+\item[o] But closest PredictedOutputPositive to OutputPositive for 16-17.
+\item[o] Overall best choice seems with flat peak between 10 and 17, then rebalance at bin 0. 
+\item[o] Next steps: write thesis.
 \end{enumerate}
 \end{frame}
 \clearpage
+
+\end{document}
