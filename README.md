@@ -24,20 +24,20 @@ Master thesis report and presentation
 
 * [master thesis report](./thesis/LuizaCiucuMScThesisTrackML.pdf)
 
-* [master thesis presentation](./slides/LuizaCiucuTrackML210308.pdf).
+* [master thesis presentation](./slides/LuizaCiucuTrackML210308.pdf)
 
 Selected presentations slides in pdf:
 
 * [31 March 2020](./slides/LuizaCiucuTrackML200331.pdf), presented at the ATLAS group at the University of Geneva
 
-* [22 May 2020](./slides/LuizaCiucuTrackML200522.pdf), presented to my analysis group, comparing unbalanced and balanced relative to the positive vs negative hits
+* [22 May 2020](./slides/LuizaCiucuTrackML200522.pdf), comparing unbalanced and balanced relative to the positive vs negative hits
 
-* [19 Jun 2020](./slides/LuizaCiucuTrackML200619.pdf), presented to my analysis group, comparing three methods of balancing the datasets
+* [19 Jun 2020](./slides/LuizaCiucuTrackML200619.pdf), comparing three methods of balancing the datasets
 
-* [26 Jun 2020](./slides/LuizaCiucuTrackML200626.pdf), presented to my analysis group, further balancing on all events
+* [26 Jun 2020](./slides/LuizaCiucuTrackML200626.pdf), further balancing on all events
 
-* [03 Jul 2020](./slides/LuizaCiucuTrackML200703.pdf), presented to my analysis group, refine balancing in train sample, test sample is unbalanced, hyper-parameter tuning
+* [03 Jul 2020](./slides/LuizaCiucuTrackML200703.pdf), refine balancing in train sample, test sample is unbalanced, hyper-parameter tuning
 
-* [10 Jul 2020](./slides/LuizaCiucuTrackML200710.pdf), presented to my analysis group, added dropout layer
+* [10 Jul 2020](./slides/LuizaCiucuTrackML200710.pdf), added dropout layer
 
-* [17 Jul 2020](./slides/LuizaCiucuTrackML200717.pdf), presented to my analysis group, final results, after added particle reconstruction efficiency
+* [17 Jul 2020](./slides/LuizaCiucuTrackML200717.pdf), final results, after added particle reconstruction efficiency
