@@ -1,4 +1,7 @@
-The master thesis project in experimental particle physics at the University of Geneva.
+# Master thesis research
+
+* Field: experimental particle physics at the University of Geneva.
+* Title: "Track Reconstruction for a High-Luminosity LHC Detector using Deep Neural Networks".
 
 Implementing the project of matching hits to a particle from this [Kaggle competition](https://www.kaggle.com/c/trackml-particle-identification) in a `Jupyter Notebook` with `Python3`, `Keras`, `TensorFlow`, and plotting in `matplotlib`.
 
