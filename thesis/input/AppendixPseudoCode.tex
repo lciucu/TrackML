@@ -1,0 +1,323 @@
+\chapter{Pseudo-Code}
+\label{chapter:PseudoCode}
+
+In this appendix chapter several pseudo-code algorithms are presented. 
+
+\section{Input and Output Preparation}
+\label{sec:AppendixPseudoCodeInputOutput}
+
+This section presents the pseudo-code for three algorithms for preparing the input and output for the NN training.
+
+\subsection{Algorithm 1}
+
+The Algorithm 1 is the following: for all events in a folder, store in \texttt{.npy} files numpy arrays with each row representing a bucket of 20 hits.
+
+\ \\The input variables are the following:
+\begin{itemize}
+\item inputFolderName: contains any number of files for each event in format \td{"*-hits.csv"}, \td{"*-truth.csv"}
+\item outputFolderName:
+\item fileNameNNInputTrainAll: \td{("input_train.npy")}
+\item fileNameNNOutputTrainAll: \td{("input_test.npy")}
+\item fileNameNNInputTestAll: \td{("output_train.npy")}
+\item fileNameNNOutputTestAll: \td{("output_test.npy")}
+\item metric: \td{("angular")}
+\item nrtrees: \td{(10)}
+\end{itemize}
+
+\ \\There is no output variables. There are only side effects.
+
+\ \\ There are the following intermediate variables:
+\begin{itemize}
+\item \td{list_eventNumber}: used in the for loop, using the \td{eventNumber} and \td{index i}
+\item \td{inputFileName_hits_recon}
+\item \td{inputFileName_hits_truth}
+\item \td{df_hits_recon}
+\item \td{df_hits_truth}
+\item \td{df_hits}
+\item \td{nparray_position}
+\item \td{numberDimension}
+\item \td{index}
+\item \td{nparray_input_all}
+\item \td{nparray_output_all}
+\item \td{nrBuckets}
+\item \td{list_index_Train}
+\item \td{list_index_Test}
+\item \td{nparray_Input_Train}
+\item \td{nparray_Input_Test}
+\item \td{nparray_Output_Train}
+\item \td{nparray_Output_Test}
+\item \td{nparray_Input_Train_all_Events}
+\item \td{nparray_Input_Test_all_Events}
+\item \td{nparray_Output_Train_all_Events}
+\item \td{nparray_Output_Test_all_Events}
+\end{itemize}
+
+\ \\The method of the algorithm is the following.
+
+\begin{verbatim}
+create empty list: list_eventNumber=[]
+for fileName in alphapetical list (sorted) of files in inputFolder:
+  if fileName ends in "-hits.csv":
+    eventNumber <-- from fileName remove "event" and "-hits.csv"
+    append eventNumber to the list_eventNumber
+
+for eventNumber in list_eventNumber also remember index i:
+  inputFileName_hits_recon <-- inputFolderName+"/event"+eventNumber+"-hits.csv"
+  inputFileName_hits_truth <-- inputFolderName+"/event"+eventNumber+"-truth.csv"
+  df_hits_recon <-- read pandas df from csv file inputFileName_hits_recon
+  df_hits_truth <-- read pandas df from csv file inputFileName_hits_truth
+  df_hits <-- concatenate df_hits_recon & df_hits_truth on axis 1
+  nparray_position <-- df_hits take column "x", "y", "z" and convert to nparray
+  numberDimension <-- number of columns in nparray_position (3)
+  metric <-- "angular"
+  index <-- AnnoyIndex constructor(numberDimension, metric)
+  for position in nparray_position with index j:
+    add to index the position at index j
+  build index with 10 trees 
+
+  nparray_input_all, nparray_output_all <-- function with arguments df_hits, index 
+  (see this function implemented in Algorithm 2)
+
+  nrBucket <-- number of elements in nparray_input_all
+  if nrBucket is odd remove last element from nparray_input_all and nparray_output_all 
+  reshape nparray_input_all to have three dim as needed by TensorFlow
+  nrBucket <-- recount number of elements in nparray_input_all
+  list_index_Train <-- build list of even bucket indices
+  list_index_Test <-- build list of odd bucket indices
+
+  nparray_Input_Train <-- takes subset of nparray_input_all with list_index_Train
+  nparray_Input_Test <-- takes subset of nparray_input_all with list_index_Test
+  nparray_Output_Train <-- takes subset of nparray_output_all with list_index_Train
+  nparray_Output_Test <-- takes subset of nparray_output_all with list_index_Test
+
+  if i is 0:
+    nparray_Input_Train_all_Events <-- nparray_Input_Train
+    nparray_Input_Test_all_Events <-- nparray_Input_Test
+    nparray_Output_Train_all_Events <-- nparray_Output_Train
+    nparray_Output_Test_all_Events <-- nparray_Output_Test
+  else:
+    nparray_Input_Train_all_Events <-- concatenate  over axis 0
+    nparray_Input_Train_all_Events & nparray_Input_Train
+    nparray_Input_Test_all_Events <-- concatenate  over axis 0
+    nparray_Input_Test_all_Events & nparray_Input_Test
+    nparray_Output_Train_all_Events <-- concatenate  over axis 0
+    nparray_Output_Train_all_Events & nparray_Output_Train
+    nparray_Output_Test_all_Events <-- concatenate  over axis 0
+    nparray_Output_Test_all_Events & nparray_Output_Test
+# done for loop over all events
+
+write nparray_Input_Train_all_Events to binary .npy file fileNameNNInputTrainAll
+write nparray_Input_Test_all_Events to binary .npy file fileNameNNInputTestAll
+write nparray_Output_Train_all_Events to binary .npy file fileNameNNOutputTrainAll
+write nparray_Output_Test_all_Events to binary .npy file fileNameNNOutputTestAll
+\end{verbatim}
+
+
+\subsection{Algorithm 2}
+
+The Algorithm 2 is the following. For one event, from \td{df_hits} and \td{Annoy index} compute numpy arrays for NN input and output, where each row represents a bucket of 20 hits. For one bucket, the input has 60 elements (20 hits times 3 coordinates (x,y,z)), and the output has 20 elements (-1 or 1 depending if the hit belongs to the particle with largest number of hits in that bucket).
+
+\ \\ The input variables are the following:
+\begin{itemize}
+\item \td{df_hits}
+\item \td{index}
+\item \td{minValueOfNrHitsForParticleWithMostHits} (0 or 10)
+\item \td{bucketSize} (20)
+\end{itemize}
+
+\ \\ The output variables are the following:
+\begin{itemize} 
+\item \td{nparray_input_all}
+\item \td{nparray_output_all}
+\end{itemize}
+
+\ \\ The intermediate variables are the following:
+\begin{itemize} 
+\item \td{nparray_volume_id}
+\item \td{nparray_layer_id}
+\item \td{list_nparray_input}
+\item \td{list_nparray_output}
+\item \td{i index} of hit in \td{df_hits}
+\item \td{list_index} list of indices in \td{df_hits} for 20 nearest neighbors (nns) by angle to one hit
+\item \td{df_bucket}
+\item \td{nparray_input}
+\item \td{nparray_particleID}
+\item \td{dict_particleID_counterParticleID}
+\item \td{particleIDWithMaxHits}
+\item \td{counterParticleIDWithMaxHits}
+\item \td{list_output}
+\item \td{nparray_output}
+\end{itemize}
+
+\ \\The method of the algorithm is the following.
+\begin{verbatim}
+Create empty lists list_nparray_input and list_nparray_output
+
+nparray_volume_id <-- df_hits takes column "volume_id" and convert to nparray
+nparray_layer_id <-- df_hits takes column "layer_id" and convert to nparray
+
+for i in list of indices of elements in df_hits:
+  list_index <-- from annoy index get the nns for hit with index i and bucketSize
+  df_bucket <-- subset of df_hits using indices from list_index
+  nparray_input <-- df_bucket take column "x", "y", "z" and convert to flat nparray 
+
+  nparray_particleID <-- df_bucket take column "particle_id" and convert to nparray
+  dict_particleID_counterParticleID <-- is a dictionary for each particleID (in the bucket) counts how many hits belongs to this particle
+  counterParticleIDWithMaxHits <-- find max counter of the dictionary above
+  list_output <-- create empty list
+
+  for particleID in nparray_particleID (loop over hits in bucket):
+    if counterParticleIDWithMaxHits<minValueOfNrHitsForParticleWithMostHits:
+      add to list_output -1 (consider no hit belongs to a particle)
+    else:
+      if articleID==particleIDWithMaxHits:
+        add to list_output +1 (consider this hit belongs to the particle) 
+      else:
+        add to list_output -1 (consider this hit not belongs to the particle)
+  # done loop over hits in bucket
+  nparray_output <-- convert list_output into a numpy array
+
+  Add to list list_nparray_input. the element nparray_input
+  Add to list list_nparray_output. the element nparray_output
+# done loop over hits in the event 
+
+nparray_input_all <-- convert from list_nparray_input
+nparray_output_all <-- convert from list_nparray_output	
+
+return nparray_input_all, nparray_output_all
+\end{verbatim}
+
+\subsection{Algorithm 3}
+
+The Algorithm 3 describes how the 100 events are split 70\% into the Train sample and 30\% in the Test sample.
+\begin{verbatim}
+for i, eventNumber in list_eventNumber:
+  df_hits_recon <-- pd.read.csv (file ending in “_hits.csv”)
+  df_hits_truth <-- pd.read.csv (file ending in “_truth.csv”)
+  df_hits <-- concatenate (df_hits_recon, df_hits_truth)
+
+  nparray_position <-- from df_hits take columns “x”,”y”,”z” as numpy arrays
+  index <-- use Annoy library to build an index (sorting hits per direction)
+  nparray_input_all, nparray_output_all <-- from df_hits and index
+  (see this function implemented in Algorithm 1)
+	
+  # keep only number of buckets multiple of 10
+  nbBucket=nparray_input_all.shape[0]
+  rest=nbBucket%10
+  if  rest<7:
+    add event to Train
+  else:
+    add event to Test
+# done for loop over event
+\end{verbatim}
+
+\section{Model Evaluation Metrics}
+\label{sec:AppendixModelEvaluationMetrics}
+
+In this section the pseudo code for the metric evaluation of the model is presented.
+
+\ \\In the first algorithm, a histogram is built across buckets for multi-label classification metrics at bucket level, across the 20 hits in a bucket: Accuracy, Precision, Recall, Positive, Negative, Predicted Positive, Predicted Negative. The algorithm is implemented in a function that is called for both Train and Test.
+
+\ \\The input variables are the following:
+\begin{itemize}
+\item \td{nparray_Output}
+\item \td{nparray_PredictedOutput}
+\end{itemize}
+
+\ \\The output variables are the following:
+\begin{itemize}
+\item \td{nparray_bucket_OutputPositive}
+\item \td{nparray_bucket_OutputNegative}
+\item \td{nparray_bucket_PredictedOutputPositive}
+\item \td{nparray_bucket_PredictedOutputNegative}
+\item \td{nparray_bucket_TruePositive}
+\item \td{nparray_bucket_FalsePositive}
+\item \td{nparray_bucket_FalseNegative}
+\item \td{nparray_bucket_TrueNegative}
+\item \td{nparray_bucket_acc}
+\item \td{nparray_bucket_accuracy}
+\item \td{nparray_bucket_precision}
+\item \td{nparray_bucket_recall}
+\end{itemize}
+
+\ \\The intermediate variables are the following:
+\begin{itemize}
+\item \td{nparray_bucket_Output}
+\item \td{nparray_bucket_PredictedOutput}
+\item \td{counter_hit_TP} (per bucket)
+\item \td{counter_hit_FP} (per bucket)
+\item \td{counter_hit_FN} (per bucket)
+\item \td{counter_hit_TN} (per bucket)
+\item \td{TP} True Positive (per hit)
+\item \td{FP} False Positive (per hit)
+\item \td{FN} False Negative (per hit)
+\item \td{TN} True Negative (per hit)
+\item \td{bucket_OutputPositive}
+\item \td{bucket_OutputNegative}
+\item \td{bucket_PredictedOutputPositive}
+\item \td{bucket_PredictedOutputNegative}
+\item \td{bucket_TruePositive}
+\item \td{bucket_FalsePositive}
+\item \td{bucket_FalseNegative}
+\item \td{bucket_TrueNegative}
+\item \td{bucket_acc,bucket_accuracy}
+\item \td{bucket_precision}
+\item \td{bucket_recall}
+\end{itemize}
+
+\ \\The method of the algorithm is the following.
+\begin{verbatim}
+Create an empty list for every metric
+nbBucket=number of rows in nparray_Output
+for i in range(nbBucket): (for loop over buckets): 
+  nparray_bucket_Output=nparray_Output[i]
+  nparray_bucket_PredictedOutput=nparray_PredictedOutput[i]
+  # Initialize to zero counters of number of hits for each confusion matrix element (TP,FP,FN,TN)
+  counter_hit_TP=0
+  counter_hit_FP=0
+  counter_hit_FN=0
+  counter_hit_TN=0
+  for j in range(len(nparray_bucket_Output)): (for loop over hits)
+    # Read values for every hit
+    hit_Output=nparray_bucket_Output[j]
+    hit_PredictedOutput=nparray_bucket_PredictedOutput[j] 
+    # initialize matrix confusion element to zero for this hit
+    TP=0
+    FP=0
+    FN=0
+    TN=0
+    if hit_PredictedOutput>0 and hit_Output>0:
+      TP=1 
+    if hit_PredictedOutput>0 and hit_Output<0:
+      FP=1
+    if hit_PredictedOutput<0 and hit_Output>0:
+      FN=1 
+    if hit_PredictedOutput<0 and hit_Output<0:
+      TN=1 
+    # increment counters for this hit
+    counter_hit_TP+=TP
+    counter_hit_FP+=FP
+    counter_hit_FN+=FN
+    counter_hit_TN+=TN
+  # done for loop over hits, for each bucket calculate metrics: accuracy, precision, recall, etc . 
+  bucket_accuracy=(counter_hit_TP+counter_hit_TN)/(counter_hit_TP+counter_hit_FP+counter_hit_FN+counter_hit_TN)
+  if counter_hit_TP+counter_hit_FP==0:
+    bucket_precision=0
+  else:
+    bucket_precision=(counter_hit_TP)/(counter_hit_TP+counter_hit_FP)
+  if counter_hit_TP+counter_hit_FN==0:
+    bucket_recall=0
+  else:
+    bucket_recall=(counter_hit_TP)/(counter_hit_TP+counter_hit_FN)
+  #
+  bucket_TruePositive=counter_hit_TP+counter_hit_FP
+  bucket_TrueNegative=counter_hit_FN+counter_hit_TN
+  bucket_PredictedOutputPositive=counter_hit_TP+counter_hit_FN
+  bucket_PredictedOutputNegative=counter_hit_FP+counter_hit_TN
+  bucket_acc=counter_hit_TP+counter_hit_TN
+  For each metric append the value for this bucket to its corresponding list
+# done for loop over buckets 
+For each metric create a numpy array from the corresponding list
+\end{verbatim}
+
+\ \\This function is run twice, one pe Train or Test. This allows to create a histogram from the numpy array and overlay Train and Test. If the histogram with values between 0 and 20 is divided by the number of buckets (20), the x variable becomes the probability density function with values between 0.0 and 1.0. 
