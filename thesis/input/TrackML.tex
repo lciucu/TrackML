@@ -12,7 +12,7 @@ To bring expertise for particle tracking for Run-3 to CERN from the computer sci
 \begin{figure}[htb]
 \centering
 \includegraphics[width=0.45\textwidth]{./plots/ThreeSiDetectors.png}
-\caption{Tracks are reconstructed in the inner detector, which is simulated formed of three types of silicon detectors. From beam pipe outwards the pixels, short strips and long strips~\cite{TrackMLPPTBefore}.}
+\caption{Tracks are reconstructed in the inner detector, which is simulated formed of three types of silicon detectors. From beam pipe outwards the pixels, short strips and long strips~\cite{TrackMLPPTBefore}~\cite{TrackMLPaperAccuracyPhase}.}
 \label{fig:ThreeSiDetectors}
 \end{figure}
 
@@ -23,13 +23,13 @@ To bring expertise for particle tracking for Run-3 to CERN from the computer sci
 \begin{figure}[hbt]
 \centering
 \includegraphics[width=0.9\textwidth]{./plots/DetectorGeometry.png}
-\caption{The three detectors are organised in volumes, layers and modules~\cite{TrackMLPPTBefore}.}
+\caption{The three detectors are organised in volumes, layers and modules~\cite{TrackMLPPTBefore}~\cite{TrackMLPaperAccuracyPhase}.}
 \label{fig:DetectorGeometry}
 \end{figure}
 
 \section{Dataset}
 
-Ten thousand events were simulated with collisions in the centre of the detector, leading to about 0.1 billion tracks. Each track has about 10 hits, or 3D points, in the simulated detector, leading to a total of 1 billion points, and about 100 GBytes of data~\cite{TrackMLPPTAfter2}. The dataset from TrackML is described in detail in~\cite{TrackMLPaper}~\cite{TrackMLPaperHAL}. A subset of 100 events of the TrackML dataset is used in this study.
+Ten thousand events were simulated with collisions in the centre of the detector, leading to about 0.1 billion tracks. Each track has about 10 hits, or 3D points, in the simulated detector, leading to a total of 1 billion points, and about 100 GBytes of data~\cite{TrackMLPPTAfter2}. The dataset from TrackML is described in detail in~\cite{TrackMLPaperAccuracyPhase}~\cite{TrackMLPaper}~\cite{TrackMLPaperHAL}. A subset of 100 events of the TrackML dataset is used in this study.
 
 \ \\The detector volumes for barrel and end-caps is divided into unique \volumeID. Each volume is divided into layers described by \layerID, which for technical reasons have only even values. Each layer is divided into modules identified by \moduleID. For each event, four files are provided~\cite{TrackMLPaper}.
 

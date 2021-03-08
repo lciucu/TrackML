@@ -17,10 +17,10 @@ testlatex:
 	dvipdf -sPAPERSIZE=a4 -dPDFSETTINGS=/prepress ${BASENAME}
 
 testpdflatex:
-	#$(PDFLATEX) ${BASENAME}
+	$(PDFLATEX) ${BASENAME}
 	$(PDFLATEX) ${BASENAME}
 	$(BIBTEX)   ${BASENAME}
-	#$(PDFLATEX) $(BASENAME)
+	$(PDFLATEX) $(BASENAME)
 	$(PDFLATEX) ${BASENAME}
 
 #
