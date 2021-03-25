@@ -48,9 +48,7 @@ clean:
 		*.bcf *.lof *.lot *.run.xml *.synctex\(busy\)
 	rm -f ${BASENAME}.pdf
 	rm -f ${BASENAME}.synctex.gz*
-	rm -f Content/*.aux
-	#rm -f Content/*~
-	#rm -f Appendix/*.aux
-	#rm -f Appendix/*~
+	rm -f input/*.aux
+	rm -f input/*~
 
 
